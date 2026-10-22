@@ -140,4 +140,5 @@ Partitabellerne viser nu ændring i stemmeandel (%-point) og i antal stemmer ift
 ## Logo
 Logoet ligger i `img/valg.svg` (lyst logo til den mørke header/footer) og bruges i `index.html`. Det er dekorativt (`alt=""`); linket har `aria-label`.
 #   v a l g 2  
+ #   v a l g 2  
  
