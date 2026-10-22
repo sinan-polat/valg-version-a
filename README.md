@@ -29,7 +29,7 @@ Opdater siden: git add . / git commit -m "Opdatering" / git push.
 | Nyt | Hvor | Hvad |
 |---|---|---|
 | Header | alle sider | Valgresultater, Kandidater og kredse, **Sammenlign** og **Hent data** ligger i headeren. Søg-knap (genvej: tasten /) og burgermenu med tre grupper: *Til dig som vælger*, *Til dig der vil nørde*, *Om valg.dk* |
-| Forside | #/ | Én skærm uden scroll: søgning og kommunevalg til venstre, til højre et kort med faner (**Mandatfordeling** · **Kort** · **Hvem er valgt ind?**) og skift mellem Kommunal- og Folketingsvalg. Live-optælling (simuleret) vises som bjælke i kortet. På mobil stakkes indholdet, og kun kortets indhold scroller |
+| Forside | #/ | Øverst: live-linje, søgning, valg af målgruppe (vælger, kandidat, presse), **mandatfordeling** og **Hvem er valgt ind?**. Derefter Danmarkskort, video-, grafik- og budskabsplads og andre valg |
 | Live | forsiden | Knappen *Se valgaftenen live (simulation)* tæller kommunerne op en ad gangen. Kort, mandatfordeling, valgte og status opdateres løbende. Pause, spring til slut, forfra |
 | Kredse og kandidater | #/kredse | Træ der foldes ud: storkreds → opstillingskreds → kandidater (folketingsvalg) eller region → kommune → afstemningsområder og valgte (kommunalvalg). Filter på kandidatnavn |
 | Hvem er valgt ind? | #/valgt | Mandatfordeling og alle valgte med filter på parti, område og navn, sortering og Excel-udtræk |
@@ -139,3 +139,6 @@ Partitabellerne viser nu ændring i stemmeandel (%-point) og i antal stemmer ift
 
 ## Logo
 Logoet ligger i `img/valg.svg` (lyst logo til den mørke header/footer) og bruges i `index.html`. Det er dekorativt (`alt=""`); linket har `aria-label`.
+#   v a l g 2  
+ #   v a l g 2  
+ 
