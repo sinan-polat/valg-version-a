@@ -185,12 +185,13 @@
       else if (it.type === 'parti') location.hash = href('/parti/' + enc(it.id), { valg: KV });
       else location.hash = resultHref(it.id, KV);
     }
-    function searchBox({ placeholder, id, onlyCands, valg }) {
+    function searchBox({ placeholder, id, onlyCands, valg, onKommune }) {
+      const pick = it => (onKommune && it.type === 'kommune') ? onKommune(it.id) : pickItem(it);
       const inp = h('input', { type: 'text', id, placeholder, 'aria-label': placeholder, 'data-enter': 'first' });
       const getItems = q => onlyCands ? candSearch(q, valg, 7).map(candItem) : H.searchAll(q);
-      const form = h('form', { class: 'search', role: 'search', onsubmit: e => { e.preventDefault(); const f = getItems(inp.value)[0]; if (f) pickItem(f); else if (inp.value.trim()) location.hash = href('/ikke-med', { side: 'Søgning efter «' + inp.value.trim() + '»' }); } },
+      const form = h('form', { class: 'search', role: 'search', onsubmit: e => { e.preventDefault(); const f = getItems(inp.value)[0]; if (f) pick(f); else if (inp.value.trim()) location.hash = href('/ikke-med', { side: 'Søgning efter «' + inp.value.trim() + '»' }); } },
         h('div', { class: 'box' }, inp, h('button', { class: 'btn', type: 'submit' }, 'Søg')));
-      autocomplete(inp, getItems, pickItem);
+      autocomplete(inp, getItems, pick);
       return { form, inp };
     }
 
@@ -233,13 +234,26 @@
     }
 
     /* ======================= FORSIDE (én skærm, ingen scroll) ======================= */
-    let hv = KV, tab = 'mand', mapMetric = 'party';
+    const FOCKEY = 'valg.minKommune';
+    const loadFoc = () => { try { const v = localStorage.getItem(FOCKEY); return v && byId[v] ? v : null; } catch (e) { return null; } };
+    const saveFoc = v => { try { if (v) localStorage.setItem(FOCKEY, v); else localStorage.removeItem(FOCKEY); } catch (e) { /* ingen lagring */ } };
+    let hv = KV, tab = 'mand', mapMetric = 'party', foc = loadFoc();
     const fvBig = (() => { const o = {}; FV.kredse.forEach(k => k.kom.forEach(id => { o[id] = o[id] || {}; Object.keys(k.votes).forEach(p => { o[id][p] = (o[id][p] || 0) + k.votes[p]; }); })); const r = {}; Object.keys(o).forEach(id => { r[id] = bigOfVotes(o[id]); }); return r; })();
     function home() {
       document.title = 'valg.dk – prototype (nyt design)';
       const el = h('div', { class: 'fitpage' });
       const liveBox = h('div', { class: 'ft-live' }), body = h('div', { class: 'ft-body' }), say = h('p', { class: 'sr-only', role: 'status', 'aria-live': 'polite' });
       const title = h('h2', { id: 'ft-title' }), eyebrow = h('p', { class: 'eyebrow' });
+      const backBtn = h('button', { class: 'ft-back', type: 'button', onclick: () => setFoc(null) }, '← Hele landet');
+      let annFoc = null, sel = null;
+      function setFoc(id, t) {
+        foc = id || null; saveFoc(foc); annFoc = null;
+        if (foc) { hv = KV; tab = t || 'mand'; log('fokus', foc); }
+        if (sel) sel.value = foc || '';
+        drawAll();
+        say.textContent = foc ? `Viser resultat for ${byId[foc].name} Kommune.` : 'Viser hele landet.';
+      }
+      const focK = () => (foc && hv === KV) ? byId[foc] : null;
 
       /* live-linje (kompakt) */
       function drawLive() {
@@ -255,14 +269,27 @@
         liveBox.append(h('div', { class: 'livebar ' + (done ? 'finished' : LIVE.paused ? 'paused' : 'running') },
           h('span', { class: 'lb-tag' }, done ? 'Slut' : LIVE.paused ? 'Pause' : h('span', {}, h('i', { class: 'pulse' }), 'LIVE')),
           h('span', { class: 'lb-text' }, h('strong', {}, `${LIVE.n}/${total} kommuner`), ` · ${fmtP(a.cast / ALL_CAST * 100, 0)} talt op · kl. ${simClock()}`),
-          h('span', { class: 'lb-track', 'aria-hidden': 'true' }, h('i', { style: `width:${LIVE.n / total * 100}%` })), h('span', { class: 'spacer' }),
+          focK() ? h('span', { class: 'lb-mine' }, `${focK().name}: ${isCounted(foc) ? 'optalt ✓' : 'venter …'}`) : null, h('span', { class: 'lb-track', 'aria-hidden': 'true' }, h('i', { style: `width:${LIVE.n / total * 100}%` })), h('span', { class: 'spacer' }),
           !done ? mk(LIVE.paused ? '▶ Fortsæt' : '⏸ Pause', live.pause) : null, !done ? mk('⏭ Slut', live.skip, 'opt') : null, mk('↺', live.start, 'opt'), mk('Afslut', live.stop)));
+        if (focK() && isCounted(foc) && annFoc !== foc) { annFoc = foc; say.textContent = `${focK().name} Kommune er nu optalt.`; }
         const q = Math.floor(LIVE.n / total * 4); if (q > LIVE.said) { LIVE.said = q; say.textContent = `${LIVE.n} af ${total} kommuner er optalt.`; }
         const rs = liveBox.querySelector('button[class*="opt"]:last-of-type'); if (rs) rs.setAttribute('aria-label', 'Start forfra');
       }
 
       /* fane 1: mandatfordeling */
       function paintMand(c) {
+        const fk = focK();
+        if (fk) {
+          const R = fk.results[KV], P = fk.results[PREV];
+          if (!isCounted(fk.id)) {
+            c.append(h('div', { class: 'mbar empty' }, 'Optælles stadig …'), h('p', { class: 'empty-note' }, `${fk.name} er ikke optalt endnu. Resultatet vises, så snart kommunen er talt op.`));
+          } else {
+            const rows = Object.keys(R.mandates).filter(p => R.mandates[p] > 0).map(p => ({ p, m: R.mandates[p] })).sort((x, y) => y.m - x.m);
+            c.append(h('div', { class: 'bignum' }, h('strong', {}, fmtN(fk.seats)), h('span', {}, ` byrådsmandater · valgdeltagelse ${fmtP(R.cast / R.electorate * 100, 1)}`)), mbar(rows), legendRows(R.mandates, P.mandates));
+          }
+          c.append(h('div', { class: 'btnrow' }, h('a', { class: 'btn small', href: resultHref(fk.id, KV) }, `Hele resultatet for ${fk.name}`), h('button', { class: 'btn small secondary', type: 'button', onclick: () => setFoc(null) }, 'Hele landet')));
+          return;
+        }
         if (hv === KV) {
           const a = kvAgg(), rows = Object.keys(a.m).filter(p => a.m[p] > 0).map(p => ({ p, m: a.m[p] })).sort((x, y) => y.m - x.m);
           c.append(h('div', { class: 'bignum' }, h('strong', {}, fmtN(a.seats)), h('span', {}, ` af ${fmtN(TOTAL_SEATS)} byrådsmandater ${LIVE.on && LIVE.n < KOM.length ? 'foreløbigt fordelt' : 'fordelt'}`)));
@@ -279,31 +306,34 @@
       /* fane 2: kort */
       function paintMap(c) {
         const isFV = hv === 'fv', metric = isFV ? 'party' : mapMetric;
-        const opts = { valg: KV, metric, counted: isFV ? null : isCounted, onSelect: id => { log('map', id); location.hash = isFV ? '#/kreds/' + komToKreds[id][0] : resultHref(id, KV); } };
+        const opts = { valg: KV, metric, counted: isFV ? null : isCounted, onSelect: id => { log('map', id); if (isFV) location.hash = '#/kreds/' + komToKreds[id][0]; else setFoc(id, 'mand'); } };
         if (!isFV) opts.onRegion = rid => { log('map', rid); location.hash = resultHref(rid, KV); };
         if (isFV) { opts.fillOf = k => D.parties[fvBig[k.id]].color; opts.titleOf = k => `${k.name} – største parti (eksempel): ${fvBig[k.id]} ${PN(fvBig[k.id])}`; }
         else if (metric === 'party') opts.titleOf = k => isCounted(k.id) ? `${k.name} – største parti ${H.biggest(k, KV)} ${PN(H.biggest(k, KV))}` : `${k.name} – optælles stadig`;
         const cnt = {}; let pend = 0;
         KOM.forEach(k => { if (!isFV && !isCounted(k.id)) { pend++; return; } const p = isFV ? fvBig[k.id] : H.biggest(k, KV); cnt[p] = (cnt[p] || 0) + 1; });
         const tg = isFV ? null : h('div', { class: 'seg', role: 'group', 'aria-label': 'Vis på kortet' }, [['party', 'Største parti'], ['turnout', 'Valgdeltagelse']].map(([id, t]) => h('button', { type: 'button', 'aria-pressed': String(mapMetric === id), onclick: () => { mapMetric = id; drawAll(); } }, t)));
-        c.append(h('div', { class: 'ft-map' }, GEO.renderMap(opts)),
-          h('div', { class: 'ft-mapfoot' }, tg, metric === 'turnout' ? h('span', { class: 'mapnote' }, 'Mørkere = højere valgdeltagelse') : h('div', { class: 'chipleg' }, Object.keys(cnt).sort((x, y) => cnt[y] - cnt[x]).slice(0, 7).map(p => h('span', {}, h('i', { style: `background:${D.parties[p].color}` }), `${p} ${cnt[p]}`)), pend ? h('span', {}, h('i', { class: 'pend' }), `Ikke optalt ${pend}`) : null), h('span', { class: 'mapnote' }, 'Klik på en cirkel.')));
+        const mapEl = GEO.renderMap(opts);
+        if (focK()) { const b = mapEl.querySelector(`[data-id="${foc}"]`); if (b) { b.setAttribute('stroke', '#0B4BC2'); b.setAttribute('stroke-width', '3'); b.parentNode.append(b); } }
+        c.append(h('div', { class: 'ft-map' }, mapEl),
+          h('div', { class: 'ft-mapfoot' }, tg, metric === 'turnout' ? h('span', { class: 'mapnote' }, 'Mørkere = højere valgdeltagelse') : h('div', { class: 'chipleg' }, Object.keys(cnt).sort((x, y) => cnt[y] - cnt[x]).slice(0, 7).map(p => h('span', {}, h('i', { style: `background:${D.parties[p].color}` }), `${p} ${cnt[p]}`)), pend ? h('span', {}, h('i', { class: 'pend' }), `Ikke optalt ${pend}`) : null), h('span', { class: 'mapnote' }, isFV ? 'Klik på en cirkel.' : 'Klik på en cirkel for at se resultatet her.')));
       }
       /* fane 3: hvem er valgt ind */
       function paintValgt(c) {
-        const pool = (hv === KV ? allKV.filter(x => x.elected && isCounted(x.kom)) : allFV.filter(x => x.elected)).sort((a, b) => b.votes - a.votes);
+        const pool = (hv === KV ? allKV.filter(x => x.elected && isCounted(x.kom) && (!focK() || x.kom === foc)) : allFV.filter(x => x.elected)).sort((a, b) => b.votes - a.votes);
         const sb = searchBox({ placeholder: 'Søg efter en kandidat …', id: 'cq', onlyCands: true, valg: hv });
         c.append(sb.form);
-        if (!pool.length) c.append(h('p', { class: 'empty-note' }, 'Ingen er valgt endnu – optællingen er lige begyndt.'));
-        else c.append(h('ol', { class: 'vlist' }, pool.slice(0, 5).map(x => h('li', {}, pl(x.p), h('div', { class: 'vn' }, h('a', { href: x.href }, x.name), h('small', {}, x.t === 'kv' ? `${x.komName} Kommune` : `${x.kredsName} · ${x.skName.replace(' Storkreds', '')}`)), h('div', { class: 'vv' }, h('strong', {}, fmtN(x.votes)), h('small', {}, 'stemmer'))))));
-        c.append(h('div', { class: 'btnrow' }, h('a', { class: 'btn small', href: href('/valgt', { valg: hv }) }, 'Se alle valgte'), h('a', { class: 'btn small secondary', href: href('/kredse', { valg: hv }) }, 'Kredse og kandidater')));
+        if (!pool.length) c.append(h('p', { class: 'empty-note' }, focK() ? `${focK().name} er ikke optalt endnu.` : 'Ingen er valgt endnu – optællingen er lige begyndt.'));
+        else c.append(h('ol', { class: 'vlist' }, pool.slice(0, 5).map(x => h('li', {}, pl(x.p), h('div', { class: 'vn' }, h('a', { href: x.href }, x.name), h('small', {}, x.t === 'kv' ? (focK() ? x.p + ' – ' + PN(x.p) : `${x.komName} Kommune`) : `${x.kredsName} · ${x.skName.replace(' Storkreds', '')}`)), h('div', { class: 'vv' }, h('strong', {}, fmtN(x.votes)), h('small', {}, 'stemmer'))))));
+        c.append(h('div', { class: 'btnrow' }, h('a', { class: 'btn small', href: focK() ? resultHref(foc, KV) : href('/valgt', { valg: hv }) }, focK() ? 'Se alle i kommunen' : 'Se alle valgte'), h('a', { class: 'btn small secondary', href: href('/kredse', { valg: hv }) }, 'Kredse og kandidater')));
       }
       const TABS = [['mand', 'Mandatfordeling', paintMand], ['kort', 'Kort', paintMap], ['valgt', h('span', {}, h('span', { class: 'tl' }, 'Hvem er valgt ind?'), h('span', { class: 'ts' }, 'Valgte ind')), paintValgt]];
       const tabBar = h('div', { class: 'ft-tabs', role: 'tablist', 'aria-label': 'Vis' });
       const vseg = h('div', { class: 'seg', role: 'group', 'aria-label': 'Vælg valg' });
       function drawAll() {
-        eyebrow.textContent = hv === KV ? (LIVE.on ? (LIVE.n >= KOM.length ? 'Simulation slut' : 'Foreløbigt resultat') : ELS[KV].date) : 'Eksempeldata';
-        title.textContent = vname(hv);
+        eyebrow.textContent = focK() ? 'Din kommune · ' + (LIVE.on && LIVE.n < KOM.length ? 'foreløbigt' : 'Kommunalvalg 2025') : hv === KV ? (LIVE.on ? (LIVE.n >= KOM.length ? 'Simulation slut' : 'Foreløbigt resultat') : ELS[KV].date) : 'Eksempeldata';
+        title.textContent = focK() ? focK().name + ' Kommune' : vname(hv);
+        backBtn.hidden = !focK();
         vseg.innerHTML = ''; [[KV, 'Kommunalvalg'], ['fv', 'Folketingsvalg']].forEach(([id, t]) => vseg.append(h('button', { type: 'button', 'aria-pressed': String(hv === id), onclick: () => { hv = id; drawAll(); } }, t)));
         tabBar.innerHTML = ''; TABS.forEach(([id, t]) => tabBar.append(h('button', { type: 'button', role: 'tab', class: 'ft-tab', 'aria-selected': String(tab === id), onclick: () => { tab = id; drawAll(); } }, t)));
         drawLive(); body.innerHTML = ''; body.setAttribute('role', 'tabpanel'); TABS.find(x => x[0] === tab)[2](body);
@@ -312,17 +342,19 @@
       LIVE.subs.add(sub);
 
       /* venstre: hero */
-      const hero = searchBox({ placeholder: 'Søg kommune eller kandidat …', id: 'q' });
-      const sel = h('select', { class: 'select', id: 'pickK', 'aria-label': 'Vælg din kommune' }, h('option', { value: '' }, 'Vælg din kommune …'), KOM.map(k => h('option', { value: k.id }, k.name)));
-      sel.addEventListener('change', () => { if (sel.value) location.hash = resultHref(sel.value, KV); });
+      const hero = searchBox({ placeholder: 'Søg kommune eller kandidat …', id: 'q', onKommune: id => { hero.inp.value = ''; setFoc(id); } });
+      sel = h('select', { class: 'select', id: 'pickK', 'aria-label': 'Vælg din kommune' }, h('option', { value: '' }, 'Vælg din kommune …'), KOM.map(k => h('option', { value: k.id }, k.name)));
+      sel.addEventListener('change', () => setFoc(sel.value || null));
+      sel.value = foc || '';
       const ql = (hr, t, d) => h('a', { class: 'qlink', href: hr }, h('strong', {}, t), h('small', {}, d), h('span', { class: 'chev', 'aria-hidden': 'true' }, '›'));
       el.append(
         h('section', { class: 'ft-left', 'aria-labelledby': 'h-hero' }, h('p', { class: 'eyebrow' }, 'Officielle valgresultater i Danmark'), h('h1', { id: 'h-hero' }, 'Hvordan gik valget?'),
           h('p', { class: 'lead' }, 'Se mandatfordelingen, find din kommune eller kreds, og se hvem der er valgt ind.'),
           h('div', { class: 'ft-search' }, hero.form, h('div', { class: 'ft-pick' }, h('label', { for: 'pickK' }, 'Eller vælg kommune'), sel)),
+          h('p', { class: 'ft-pro' }, h('span', {}, 'Presse og analytikere:'), ' ', h('a', { href: '#/data' }, 'Hent data'), ' · ', h('a', { href: '#/sammenlign' }, 'Sammenlign områder')),
           h('div', { class: 'ft-links' }, ql(href('/valgt', { valg: KV }), 'Hvem er valgt ind?', 'Valgte med flest stemmer'), ql(href('/kredse', { valg: 'fv' }), 'Kandidater og kredse', 'Fold områderne ud'))),
         h('section', { class: 'ft-card', 'aria-labelledby': 'ft-title' },
-          h('div', { class: 'ft-head' }, h('div', {}, eyebrow, title), vseg), tabBar, liveBox, body, say),
+          h('div', { class: 'ft-head' }, h('div', {}, eyebrow, h('div', { class: 'ft-tt' }, title, backBtn)), vseg), tabBar, liveBox, body, say),
         h('div', { class: 'ft-foot' }, h('span', { class: 'ft-msg' }, h('span', { class: 'tag' }, PG.drift.items[0].tag), ' ', PG.drift.items[0].title, ' ', h('a', { href: '#/driftstatus' }, 'Læs mere')),
           h('nav', { 'aria-label': 'Genveje i bunden' }, [['#/om-valg', 'Om valg.dk'], ['#/tilgaengelighed', 'Tilgængelighed'], ['#/privatliv', 'Privatliv'], ['#/driftstatus', 'Driftstatus'], ['#/sitemap', 'Sitemap']].map(([hr, t]) => h('a', { href: hr }, t)))));
       drawAll();

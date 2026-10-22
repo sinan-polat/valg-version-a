@@ -366,3 +366,32 @@ body.fit main{flex:1 1 auto;min-height:0;display:flex}
   .ft-mapfoot .chipleg,.ft-mapfoot .mapnote{display:none}
   .ft-body .vlist li:nth-child(n+4){display:none}
 }
+
+/* v4: din kommune, mere 2026-agtigt udtryk */
+.ft-back{display:inline-flex;align-items:center;margin-top:4px;min-height:32px;padding:2px 10px;border:1.5px solid var(--line);border-radius:999px;background:#fff;color:var(--primary);font:600 13px var(--font);cursor:pointer}
+.ft-back:hover{border-color:var(--primary);background:#F0F5FF}
+.ft-back[hidden]{display:none}
+.ft-pro{margin-top:14px;font-size:14px;color:var(--muted)}
+.ft-pro span{font-weight:600;color:var(--ink)}
+.ft-live .lb-mine{font-size:13px;font-weight:600;color:var(--primary);white-space:nowrap}
+body.fit{background:radial-gradient(900px 520px at 4% -6%,#DDEAFF 0%,rgba(221,234,255,0) 62%),radial-gradient(760px 520px at 104% 108%,#FFEBD9 0%,rgba(255,235,217,0) 58%),var(--bg)}
+body.fit .ft-card{background:rgba(255,255,255,.92);backdrop-filter:saturate(1.2) blur(6px);border-color:rgba(213,221,230,.9);box-shadow:0 1px 2px rgba(15,28,46,.05),0 18px 48px -18px rgba(11,79,191,.25)}
+body.fit .ft-left::before{content:"";display:block;width:56px;height:6px;border-radius:3px;margin-bottom:16px;background:linear-gradient(90deg,#E4003B 0 33%,#0B4FBF 33% 66%,#12B5C5 66%)}
+.mbar span{transition:flex-grow .5s ease}
+.ft-body>*{animation:ftIn .28s ease-out both}
+@keyframes ftIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.ft-body>*{animation:none}.mbar span{transition:none}}
+@media (max-width:900px){.ft-live .lb-mine{display:none}.ft-pro{display:none}body.fit .ft-left::before{display:none}}
+@media (max-height:760px){.ft-pro{display:none}body.fit .ft-left::before{display:none}}
+.ft-tt{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px}
+.ft-tt .ft-back{margin-top:0}
+.ft-live .livebar button[aria-label="Start forfra"]{display:none}
+@media (max-width:900px){
+  .ft-head .eyebrow{display:none}
+  .ft-live .livebar.idle{padding:8px}
+  .ft-live .livebar.idle .lb-tag{display:none}
+  .ft-live .livebar.idle .btn{width:100%;justify-content:center}
+  .ft-live .livebar.idle .spacer{display:none}
+}
+.ft-head>div:first-child{flex:1 1 0;min-width:0}
+.ft-pro a{display:inline-block;padding:10px 4px;margin:-10px 0}
