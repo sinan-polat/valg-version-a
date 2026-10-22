@@ -11,7 +11,7 @@
   const COL = ['#0B4FBF', '#E6732F', '#12998F'];
   const DEFAULT_VALG = 'kv2025';
   const isA = window.VVER === 'a'; // version A = nuværende struktur (valgtype først)
-  const isC = window.VVER === 'c'; // version C = nyt design: valgaften, kredse og kandidater
+  const isC = window.VVER === 'c' || window.VVER === 'd'; // version C (og D) bruger valgaften, kredse og kandidater
   document.body.dataset.ver = window.VVER;
 
   /* ---------- hjælpere ---------- */
@@ -321,9 +321,9 @@
   }
 
   /* ---------- forside ---------- */
-  function home() {
+  function home(parts, q) {
     if (isA) return homeA();
-    if (isC && window.VX) return window.VX.home();
+    if (isC && window.VX) return window.VX.home(q);
     document.title = 'valg.dk – prototype';
     const el = h('div', { class: 'page wrap' });
     const inp = h('input', { type: 'text', id: 'q', placeholder: 'Søg kommune, region, kandidat, parti eller valg …', 'aria-label': 'Søg på valg.dk', 'data-enter': 'first' });

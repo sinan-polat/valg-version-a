@@ -178,8 +178,10 @@
       FV.kredse.filter(x => lc(x.name).includes(t)).slice(0, 3).forEach(x => out.push({ type: 'kreds', id: x.id, href: '#/kreds/' + x.id, label: x.name + ' (opstillingskreds)', meta: skById[x.sk].name.replace(' Storkreds', '') }));
       return out.concat(candSearch(q, null, 4).map(candItem));
     }
+    let kommuneHook = null; // version D: på forsiden sætter et valgt område sætningen i stedet for at skifte side
     function pickItem(it) {
       log('search', it.label);
+      if (kommuneHook && (it.type === 'kommune' || it.type === 'region')) { closeLayer(); kommuneHook(it.id); return; }
       if (it.href) location.hash = it.href;
       else if (it.type === 'valg') location.hash = href('/find', { valg: it.id });
       else if (it.type === 'parti') location.hash = href('/parti/' + enc(it.id), { valg: KV });
@@ -202,17 +204,18 @@
       openLayer({ label: 'Søg på valg.dk', content: [closeBtn(), h('h2', { class: 'layer-h' }, 'Søg på valg.dk'), form, h('p', { class: 'hint', style: 'margin-top:12px' }, 'Prøv fx Hørsholm, Aarhus Nord, et kandidatnavn eller Socialdemokratiet.')] });
     }
     function drawerLink(hr, t, d) { return h('a', { href: hr, class: 'dl' }, h('strong', {}, t), d ? h('small', {}, d) : null); }
+    const dm = m => window.VVER === 'd' ? '#/?do=' + m : null;
     function openDrawer() {
       const grp = (t, sub, ...links) => h('section', { class: 'dgrp' }, h('h3', {}, t), sub ? h('p', { class: 'dsub2' }, sub) : null, h('div', { class: 'dlinks' }, links));
       const content = [closeBtn(), h('h2', { class: 'layer-h' }, 'Menu'),
         grp('Til dig som vælger', 'Hurtigt svar på, hvordan det gik',
-          drawerLink(href('/find', { valg: KV }), 'Find resultatet for din kommune', 'Mandater og stemmer, hvor du bor'),
-          drawerLink(href('/valgt', { valg: KV }), 'Hvem er valgt ind?', 'Byrådsmedlemmer og folketingskandidater'),
+          drawerLink(dm('se') || href('/find', { valg: KV }), 'Find resultatet for din kommune', 'Mandater og stemmer, hvor du bor'),
+          drawerLink(dm('se&hv=valgte') || href('/valgt', { valg: KV }), 'Hvem er valgt ind?', 'Byrådsmedlemmer og folketingskandidater'),
           drawerLink(href('/kredse', { valg: 'fv' }), 'Kandidater og kredse', 'Udfold kredse og se, hvem der stillede op'),
           drawerLink('#/metode', 'Hvordan fordeles mandaterne?', 'Forklaret uden fagsprog')),
         grp('Til dig der vil nørde', 'Tal, definitioner og udtræk',
-          drawerLink('#/data', 'Hent data', 'Regneark for land, regioner, kommuner og afstemningsområder'),
-          drawerLink('#/sammenlign', 'Sammenlign områder', 'To eller tre områder i diagram eller tabel'),
+          drawerLink(dm('hente') || '#/data', 'Hent data', 'Regneark for land, regioner, kommuner og afstemningsområder'),
+          drawerLink(dm('sammenlign') || '#/sammenlign', 'Sammenlign områder', 'To eller tre områder i diagram eller tabel'),
           drawerLink(href('/data', { scope: 'kommuner', niveau: 'omr', indhold: 'parti' }), 'Afstemningsområder som data', 'Stemmer pr. parti pr. område'),
           drawerLink('#/metode', 'Metode og definitioner', 'Sådan regnes mandater, spærregrænse og tillæg'),
           drawerLink(href('/ikke-med', { side: 'Åbne data og API' }), 'Åbne data og API', 'Ikke med i prototypen')),
@@ -607,5 +610,8 @@
       home, kommuneExtras, statusBadge, searchExtra, afterRender: () => { if (layerOpen) { layerOpen.opener = null; closeLayer(); } const r = location.hash.replace(/^#/, '') || '/'; document.body.classList.toggle('fit', r === '/' || r.startsWith('/?')); },
       routes: { kredse, storkreds, kreds, kandidat, valgt, metode },
     });
+    if (window.VVER === 'd' && window.VXD) {
+      window.VXD.init({ LIVE, live, isCounted, simClock, hemicycle, allKV, allFV, komToKreds, kredsById, skById, FV, KV, PREV, PN, pl, vname, lc, openLayer, closeLayer, closeBtn, searchBox, candSearch, openSearch, openDrawer, setKommuneHook: f => { kommuneHook = f; }, baseAfterRender: window.VX.afterRender });
+    }
   }
 })();

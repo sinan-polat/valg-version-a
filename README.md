@@ -55,6 +55,31 @@ Opdatering senere: upload de ændrede filer igen (samme filnavne), og vent et mi
 
 Siden har `noindex`, så søgemaskiner ikke bør vise den, men et offentligt link kan stadig deles. Kontrollér med Søren/KOMBIT, før du deler linket, da KOMBITs navn indgår i footeren. Læg ingen interviewcitater eller fortrolige oplysninger i repoet.
 
+## Version D – "Sætningen" (nyt design, revideret koncept)
+
+Åbn `?v=d` (fx `https://sinanp.dk/valg2/?v=d`). Standard er stadig version B, så A/B-testen ikke ændrer sig. **Version D er ikke en del af A/B-testen**; den er det reviderede koncept, som rapportens afsnit 7.5 (forbedringsforslag), 9.5 og perspektivering peger på, og som kan bruges til en opfølgende test.
+
+**Idé:** Forsiden er én sætning, man kan læse og ændre: *"Jeg vil [se / sammenligne / hente] [mandaterne / stemmerne / valgte kandidater] i [område] ved [valg]."* Svaret opdateres lige under sætningen, og adressen ændrer sig, så et resultat kan deles som link. Den løser rapportens problemer P1–P7: opgavebaseret indgang, sorteringsvalg (størst først/A–Å), status og afsender altid synlige, at hente data er adskilt fra at se tal, og avancerede sider er ét klik væk.
+
+| Hvad | Hvor | Bemærkning |
+|---|---|---|
+| Sætningen | `#/` | Native udvalgsmenuer (virker med tastatur, skærmlæser og tryk). Genvej: `/` åbner søgning. |
+| Opsummering | Under sætningen | En sætning med det vigtigste ("Socialdemokratiet er største parti …"). På mobil kortes den ned. |
+| Se / Sammenlign / Hent | `#/?do=se`, `do=sammenlign`, `do=hente` | Parametre: `do` (se/sammenlign/hente), `hv` (mand/stem/valgte), `omr`, `omr2`, `valg` (kv2025/kv2021/fv; fv kun ved "se"), `fmt` (excel/csv), `side`, `sort`. |
+| Min kommune | Gemmes i browserens localStorage (`valg.minKommune`) | Kan vælges ved søgning; ryddes af brugeren. |
+| Live-simulation | Knappen "Se valgaftens optælling (simulation)" | Samme motor som version C; tal er simuleret. |
+| Storskærm | `#/storskaerm` | Til valgcafé/projektor: store tal, skifter automatisk mellem billeder (pil-taster, mellemrum = pause, Esc lukker). |
+| Øvrige sider | Resultat, kredse, kandidater, data … | Arver D's udseende og deler data og ruter med C. |
+
+**Design:** ark-hvid baggrund, mørk blå (#0F1E3A) tekst og streger, gul markørfarve (#FFE14D) til det, man kan ændre, rød (#B80E28/#C8102E) kun til live og afvigelser. Skarpe hjørner (3 px) og 1,5–3 px streger. Skrifttyper: Inter Display (overskrifter og tal), Inter (tekst), Lora (sætningen). Fonte ligger i `fonts/` og indlæses **kun** i version D (se `fonts/LICENSES.md` for licens og ophav).
+
+**Tilgængelighed (egne scripttests, ikke en officiel WCAG-audit):** alle felter har navn, klikbare mål er mindst 32×32 px (scriptet tester det, ud over footerlinks), synlig fokus (også på søgefeltet), reduceret bevægelse respekteres, ingen vandret scroll fra 375 til 1440 px, forsiden kan ikke scrolles på skærme over 900 px (mobil har intern scroll i svaret).
+
+**Før version D kan nævnes i rapporten:**
+1. Afgrænsningen i rapporten siger, at kandidater, Folketingsvalg og realtid ikke er med. D (og C) har dem, så teksten skal enten rettes eller D beskrives som perspektivering.
+2. Log skrifttyperne og eventuelle citater/formuleringer fra rapporten i kildelogen (bilag 14.6).
+3. Test D med rigtige brugere, før der skrives om effekt. Tallene er eksempeldata, og designet er ikke testet endnu.
+
 ## Brug testpanelet (til dig som facilitator)
 
 Åbn siden med `?test=1`. Panelet i hjørnet viser opgaven, og alt gemmes **kun lokalt i browseren**. Der indsamles ingen personoplysninger – brug et anonymt deltager-id (P01, P02 …).
@@ -127,6 +152,11 @@ css/style.css         design (farver som CSS-variabler øverst)
 js/app.js             alle skærme, routing, søgeforslag, diagrammer, eksport
 js/data.js            eksempeldata (genereret)
 js/test-mode.js       testpanel (kun med ?test=1)
+js/app-c.js           version C (valgaften, kredse, kandidater) og fælles datalag for C og D
+js/app-d.js           version D (Sætningen, Storskærm)
+css/style-c.css       version C
+css/style-d.css       version D (gælder kun under body[data-ver="d"])
+fonts/                skrifttyper til version D (licens: fonts/LICENSES.md)
 tools/generate_data.py  genererer eksempeldata
 .nojekyll             så GitHub Pages serverer filerne uændret
 ```

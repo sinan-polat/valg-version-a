@@ -17,7 +17,7 @@
   let enabled = false;
   try { enabled = sessionStorage.getItem('valgTest') === '1'; } catch (e) { enabled = params.get('test') === '1'; }
 
-  const VER = window.VVER === 'a' ? 'a' : window.VVER === 'c' ? 'c' : 'b';
+  const VER = window.VVER === 'a' ? 'a' : window.VVER === 'c' ? 'c' : window.VVER === 'd' ? 'd' : 'b';
   const SUSQ = ['Jeg kunne godt tænke mig at bruge dette system ofte.', 'Jeg fandt systemet unødvendigt komplekst.', 'Jeg synes, systemet var let at bruge.', 'Jeg tror, jeg ville have brug for en teknisk persons hjælp for at kunne bruge systemet.', 'Jeg fandt de forskellige funktioner i systemet godt integreret.', 'Jeg synes, der var for meget inkonsistens i systemet.', 'Jeg forestiller mig, at de fleste hurtigt ville lære at bruge systemet.', 'Jeg fandt systemet meget besværligt at bruge.', 'Jeg følte mig meget sikker i at bruge systemet.', 'Jeg havde brug for at lære en masse, før jeg kunne komme i gang med systemet.'];
   const S = { phase: 'idle', first: '', sus: [], task: null, t0: 0, clicks: 0, routes: [], dead: 0, sorts: 0, exports: 0, searches: 0, secs: 0, outcome: '', seq: 0, note: '' };
   const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } };
