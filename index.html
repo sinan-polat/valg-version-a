@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>valg.dk – prototype</title>
+<meta name="description" content="Prototype til bachelorprojekt om informationsarkitektur på Valg.dk. Eksempeldata – ikke den officielle Valg.dk.">
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style-c.css">
+</head>
+<body>
+<a class="skip" href="#main">Spring til indhold</a>
+<div class="proto-banner" role="note">Prototype til bachelorprojekt – ikke den officielle Valg.dk. Alle tal er eksempeldata.</div>
+<header class="site-header">
+  <div class="in">
+    <a class="logo" href="#/" aria-label="valg.dk – forside (prototype)"><img src="img/valg.svg" alt="" width="86" height="63"><small>PROTOTYPE</small></a>
+    <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="nav">Menu</button>
+    <nav class="nav" id="nav" aria-label="Hovedmenu">
+      <a href="#/find" data-nav="find">Valgresultater</a>
+      <a href="#/sammenlign" data-nav="sammenlign">Sammenlign</a>
+      <a href="#/data" data-nav="data">Hent data</a>
+      <a href="#/om-valg" data-nav="om-valg">Om valg</a>
+    </nav>
+    <nav class="nav-c" id="navC" aria-label="Hovedmenu">
+      <a href="#/find" data-nav="find">Valgresultater</a>
+      <a href="#/kredse" data-nav="kredse">Kandidater og kredse</a>
+      <a href="#/sammenlign" data-nav="sammenlign">Sammenlign</a>
+      <a href="#/data" data-nav="data">Hent data</a>
+    </nav>
+    <div class="hdr-tools">
+      <button class="hdr-btn" id="searchBtn" type="button" aria-haspopup="dialog"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Søg</span></button>
+      <button class="hdr-btn" id="burgerBtn" type="button" aria-expanded="false" aria-controls="drawer"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>Menu</span></button>
+    </div>
+  </div>
+</header>
+<main id="main" tabindex="-1"></main>
+<footer class="site-footer">
+  <div class="in">
+    <div class="cols">
+      <div>
+        <a class="logo" href="#/" aria-label="valg.dk – forside"><img src="img/valg.svg" alt="" width="86" height="63"></a>
+        <p class="fabout">Valg.dk er den offentlige indgang for valg i Danmark. Her kan du både finde valgresultater for igangværende og tidligere valg. KOMBIT er ansvarlig for hjemmesiden VALG.dk. Hvis du har spørgsmål, kan du kontakte valg@kombit.dk.</p>
+      </div>
+      <nav aria-label="Genveje i bunden">
+        <ul class="flinks">
+          <li><a href="#/tilgaengelighed">Tilgængelighedserklæring</a></li>
+          <li><a href="#/data">Eksport af data</a></li>
+          <li><a href="#/driftstatus">Driftstatus for valg.dk</a></li>
+          <li><a href="#/privatliv">Privatlivspolitik og brug af data</a></li>
+          <li><a href="#/sitemap">Sitemap</a></li>
+        </ul>
+      </nav>
+    </div>
+    <small>Prototype til bachelorprojekt (Zealand, PBA Digital Konceptudvikling) i samarbejde med KOMBIT – ikke den officielle Valg.dk. Alle tal er eksempeldata.</small>
+  </div>
+</footer>
+<noscript><p style="padding:24px">Prototypen kræver JavaScript.</p></noscript>
+<script src="js/ver.js"></script>
+<script src="js/data.js"></script>
+<script src="js/kandidater.js"></script>
+<script src="js/geo.js"></script>
+<script src="js/pages.js"></script>
+<script src="js/test-mode.js"></script>
+<script src="js/app-c.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
