@@ -183,7 +183,103 @@
     }
     const HEAD = ['Område', 'Region', 'Parti', 'Partinavn', 'Stemmer', 'Andel (%)', 'Mandater', 'Ændring i mandater', 'Ændring i andel (procentpoint)'];
 
+    /* ============================ KORTET (v8) ============================
+       Bygger på det skematiske kort i geo.js (som A/B også bruger, derfor uændret)
+       og lægger valg.dk-farver, zoom, infoboks og animationer ovenpå (Web Animations API). */
+    const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    const MS = { key: null, vb: null, r: {}, counted: null, sel: null };
+    const easeIO = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    const regOfKom = id => (byId[id] ? GEO.regionId(byId[id]) : null);
+    function bigOf(k, valg) { if (valg === 'fv') return fvBig[k.id]; const V = k.results[valg].votes; return Object.keys(V).reduce((x, y) => V[y] > V[x] ? y : x); }
+    function fancyMap(opts, a, b, cmp) {
+      const valg = ST.valg;
+      const zoom = cmp ? null : (a && a.startsWith('region-') ? a : (a && byId[a] ? regOfKom(a) : null));
+      const svg = GEO.renderMap(Object.assign({}, opts, zoom ? { region: zoom } : {}));
+      svg.classList.add('dmap2');
+      svg.querySelectorAll('title').forEach(t => t.remove());
+      svg.querySelectorAll('g.reg').forEach(g => { g.setAttribute('fill', '#DCE5E9'); g.setAttribute('stroke', '#F9F9F8'); g.setAttribute('stroke-width', '1.4'); });
+      svg.querySelectorAll('g.reg path[fill]').forEach(p => p.setAttribute('fill', '#DCE5E9'));
+      const circles = [...svg.querySelectorAll('circle.bub')];
+      circles.forEach(c => { if (c.classList.contains('pending')) { c.setAttribute('fill', '#fff'); c.setAttribute('fill-opacity', '1'); c.setAttribute('stroke', '#B6B5B5'); } else { c.setAttribute('stroke', '#fff'); c.setAttribute('stroke-width', '1'); } });
+      const byC = Object.fromEntries(circles.map(c => [c.dataset.id, c]));
+      /* markering af valgte områder */
+      const ringG = document.createElementNS('http://www.w3.org/2000/svg', 'g'); ringG.setAttribute('class', 'rings'); svg.append(ringG);
+      const mkC = (attrs) => { const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); Object.entries(attrs).forEach(([k, v]) => c.setAttribute(k, v)); return c; };
+      const marks = [];
+      [[a, '#26323F'], [b, '#C33030']].forEach(([id, col]) => {
+        if (!id || id === 'land' || id.startsWith('alle')) return;
+        if (id.startsWith('region-')) { const g = svg.querySelector(`[data-region="${id}"]`); if (g) { g.setAttribute('stroke', col); g.setAttribute('stroke-width', '2.4'); g.classList.add('on'); } return; }
+        const c = byC[id]; if (!c) return;
+        c.parentNode.append(c); c.setAttribute('fill-opacity', '1');
+        const ring = mkC({ cx: c.getAttribute('cx'), cy: c.getAttribute('cy'), r: (+c.getAttribute('r') + 3).toFixed(1), fill: 'none', stroke: col, 'stroke-width': '2', class: 'selring' });
+        ringG.append(ring); marks.push([id, c, ring, col]);
+      });
+      /* infoboks ved hover */
+      const wrap = h('div', { class: 'mapwrap' }, svg);
+      const tip = h('div', { class: 'maptip', hidden: '' });
+      wrap.append(tip);
+      circles.forEach(c => {
+        const k = byId[c.dataset.id]; if (!k) return;
+        const show = () => {
+          const pending = c.classList.contains('pending'), R = k.results[valg === 'fv' ? KV : valg], p = bigOf(k, valg);
+          tip.innerHTML = '';
+          tip.append(h('strong', {}, k.name), pending ? h('span', { class: 'tp-m' }, 'Ikke optalt endnu') : h('span', { class: 'tp-p' }, letter(p, 'sm'), h('span', {}, PN(p))),
+            !pending && valg !== 'fv' && R ? h('span', { class: 'tp-m' }, `Valgdeltagelse ${fmtP(R.turnout)}`) : null);
+          const wr = wrap.getBoundingClientRect(), cr = c.getBoundingClientRect();
+          tip.hidden = false;
+          const tw = tip.offsetWidth, th = tip.offsetHeight;
+          let x = cr.left - wr.left + cr.width / 2 - tw / 2, y = cr.top - wr.top - th - 10;
+          x = Math.max(4, Math.min(wr.width - tw - 4, x)); if (y < 4) y = cr.bottom - wr.top + 10;
+          tip.style.transform = `translate(${x.toFixed(0)}px,${y.toFixed(0)}px)`;
+          wrap.classList.add('hov'); c.classList.add('hot');
+        };
+        const hide = () => { tip.hidden = true; wrap.classList.remove('hov'); c.classList.remove('hot'); };
+        c.addEventListener('mouseenter', show); c.addEventListener('mouseleave', hide);
+      });
+      /* animationer */
+      const key = valg + '|' + (cmp ? 'c' : 's');
+      const newVB = svg.getAttribute('viewBox'), newR = Object.fromEntries(circles.map(c => [c.dataset.id, +c.getAttribute('r')]));
+      const counted = new Set(KOM.filter(k => !opts.counted || opts.counted(k.id)).map(k => k.id));
+      if (!RM) {
+        if (MS.key !== key) {
+          const [vx, vy, vw, vh] = newVB.split(' ').map(Number), mx = vx + vw / 2, my = vy + vh / 2;
+          circles.forEach(c => { const dx = +c.getAttribute('cx') - mx, dy = +c.getAttribute('cy') - my, dist = Math.sqrt(dx * dx + dy * dy) / Math.max(vw, vh);
+            c.animate([{ transform: 'scale(0)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], { duration: 560, delay: 80 + dist * 900, easing: 'cubic-bezier(.34,1.56,.64,1)', fill: 'backwards' }); });
+          svg.querySelectorAll('g.reg').forEach((g, i) => g.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 420, delay: i * 60, easing: 'ease-out', fill: 'backwards' }));
+        } else if (MS.vb && MS.vb !== newVB) {
+          const from = MS.vb.split(' ').map(Number), to = newVB.split(' ').map(Number), oldR = MS.r, t0 = performance.now(), D0 = 720;
+          svg.setAttribute('viewBox', MS.vb);
+          circles.forEach(c => { const r0 = oldR[c.dataset.id]; if (r0) c.setAttribute('r', r0); });
+          const step = now => { const t = Math.min(1, (now - t0) / D0), e = easeIO(t);
+            svg.setAttribute('viewBox', from.map((v, i) => (v + (to[i] - v) * e).toFixed(2)).join(' '));
+            circles.forEach(c => { const r0 = oldR[c.dataset.id], r1 = newR[c.dataset.id]; if (r0 && r1) c.setAttribute('r', (r0 + (r1 - r0) * e).toFixed(2)); });
+            marks.forEach(([id, c, ring]) => ring.setAttribute('r', (+c.getAttribute('r') + 3).toFixed(2)));
+            if (t < 1 && svg.isConnected) requestAnimationFrame(step); };
+          requestAnimationFrame(step);
+        }
+        if (MS.key === key && MS.counted) counted.forEach(id => { if (!MS.counted.has(id) && byC[id]) {
+          const c = byC[id]; c.animate([{ transform: 'scale(.3)' }, { transform: 'scale(1.35)' }, { transform: 'scale(1)' }], { duration: 650, easing: 'ease-out' });
+          const rip = mkC({ cx: c.getAttribute('cx'), cy: c.getAttribute('cy'), r: c.getAttribute('r'), fill: 'none', stroke: c.getAttribute('fill'), 'stroke-width': '2', class: 'ripple' });
+          ringG.append(rip); rip.animate([{ transform: 'scale(1)', opacity: .9 }, { transform: 'scale(3.2)', opacity: 0 }], { duration: 1100, easing: 'ease-out' }).onfinish = () => rip.remove();
+        } });
+        const selKey = (a || '') + '|' + (b || '');
+        if (MS.sel !== selKey) marks.forEach(([id, c, ring, col]) => {
+          const ping = mkC({ cx: c.getAttribute('cx'), cy: c.getAttribute('cy'), r: ring.getAttribute('r'), fill: 'none', stroke: col, 'stroke-width': '2', class: 'ripple' });
+          ringG.append(ping); ping.animate([{ transform: 'scale(1)', opacity: .8 }, { transform: 'scale(2.6)', opacity: 0 }], { duration: 1200, delay: 250, iterations: 2, easing: 'ease-out', fill: 'backwards' }).onfinish = () => ping.remove();
+        });
+        MS.sel = selKey;
+      }
+      MS.key = key; MS.vb = newVB; MS.r = newR; MS.counted = counted;
+      /* forklaring */
+      const cnt = {}; KOM.forEach(k => { if (counted.has(k.id)) { const p = bigOf(k, valg); cnt[p] = (cnt[p] || 0) + 1; } });
+      const legend = h('div', { class: 'maplegend' }, h('span', { class: 'ml-t' }, 'Største parti i kommunen'),
+        Object.keys(cnt).sort((x, y) => cnt[y] - cnt[x]).slice(0, 5).map(p => h('span', { class: 'ml-i', title: PN(p) }, letter(p, 'sm'), h('b', {}, String(cnt[p])))),
+        h('span', { class: 'ml-s' }, h('i', { class: 'ml-c1' }), h('i', { class: 'ml-c2' }), 'størrelse = antal vælgere · klik for at vælge'));
+      return h('div', { class: 'mapbox' }, wrap, legend);
+    }
+
     /* ============================ FORSIDEN ============================ */
+    const H1 = { se: 'Hvordan gik valget?', sammenlign: 'Sammenlign to områder', hente: 'Hent valgtal som fil' };
     function home(q) {
       document.title = 'valg.dk – prototype (version D)';
       ST = fromQuery(q);
@@ -220,6 +316,8 @@
         if (ST.do === 'hente') parts.push(' som ', slot('Filformat', [{ items: [['excel', 'Excel-fil'], ['csv', 'CSV-fil']] }], ST.fmt, v => update('fmt', { fmt: v }), 'fmt'));
         parts.push('.');
         sentenceBox.append(h('p', { class: 'sent' }, parts));
+        const t1 = $('#dh1', el); if (t1) t1.textContent = H1[ST.do];
+        document.title = H1[ST.do] + ' – valg.dk prototype (version D)';
         if (focusKey) { const f = $(`[data-k="${focusKey}"]`, sentenceBox); if (f) f.focus(); }
       }
 
@@ -229,16 +327,8 @@
         const fv = ST.valg === 'fv', cmp = ST.do === 'sammenlign';
         const onKom = id => { log('map', id); if (cmp) update('omr2', { omr2: id }); else update('omr', { omr: id }); };
         const opts = { valg: fv ? KV : ST.valg, metric: 'party', counted: ST.valg === 'kv2025' ? isCounted : null, onSelect: onKom, onRegion: rid => { log('map', rid); if (cmp) update('omr2', { omr2: rid }); else update('omr', { omr: rid }); } };
-        if (fv) { opts.fillOf = k => D.parties[fvBig[k.id]].color; opts.titleOf = k => `${k.name} – største parti (eksempel): ${fvBig[k.id]} ${PN(fvBig[k.id])}`; }
-        const svg = GEO.renderMap(opts);
-        const mark = (id, color, role) => {
-          if (!id || id.startsWith('alle') || id === 'land' || sk[id]) return;
-          const b = id.startsWith('region-') ? svg.querySelector(`[data-region="${id}"]`) : svg.querySelector(`[data-id="${id}"]`);
-          if (!b) return;
-          if (id.startsWith('region-')) { b.setAttribute('stroke', color); b.setAttribute('stroke-width', '3.5'); } else { b.setAttribute('stroke', color); b.setAttribute('stroke-width', '3.5'); b.parentNode.append(b); }
-        };
-        mark(ST.omr, '#0F1E3A'); if (cmp) mark(ST.omr2, '#C8102E');
-        root.append(svg, h('p', { class: 'mapnote' }, cmp ? 'Klik på en kommune for at skifte det andet område.' : 'Klik på en kommune eller region for at se dens resultat.'));
+        if (fv) { opts.fillOf = k => D.parties[fvBig[k.id]].color; }
+        root.append(fancyMap(opts, ST.omr, cmp ? ST.omr2 : null, cmp), h('p', { class: 'mapnote' }, cmp ? 'Klik på en kommune for at skifte det andet område.' : 'Klik på en kommune eller region for at se dens resultat.'));
       }
       function seatsOf(R) { const seats = []; R.rows.slice().sort((a, b) => b.m - a.m).forEach(r => { for (let i = 0; i < r.m; i++) seats.push({ p: r.p, title: `${r.p} – ${r.name}` }); }); return seats; }
 
@@ -275,20 +365,41 @@
           const host = h('div', { class: 'dview' }); paintMap(host); right.append(host);
         } else {
           const ids = ST.omr, rows = exportRows(ids, ST.valg), running = ST.valg === 'kv2025' && LIVE.on && LIVE.n < KOM.length;
-          const desc = ids === 'alle-kom' ? 'en række for hvert parti i hver af de 98 kommuner' : ids === 'alle-reg' ? 'en række for hvert parti i hver af de fem regioner' : ids.startsWith('region-') ? `en række for hvert parti i hver af de ${H.getArea(ids).kommuner.length} kommuner i ${areaIn(ids)}` : 'en række for hvert parti i ' + areaIn(ids);
-          setLede(`Filen indeholder ${fmtN(rows.length)} rækker: ${desc}. ${ST.fmt === 'excel' ? 'Den åbner direkte i dansk Excel (semikolon og decimalkomma).' : 'Kolonnerne er adskilt af komma og bruger punktum som decimaltegn.'}`);
-          const btn = h('button', { class: 'dbtn', type: 'button', disabled: running ? '' : null, onclick: () => {
+          const scope = ids === 'land' ? 'land' : ids === 'alle-reg' ? 'reg' : ids === 'alle-kom' ? 'kom' : ids.startsWith('region-') ? 'regkom' : 'en';
+          const desc = ids === 'land' ? 'én række for hvert parti i hele landet' : ids === 'alle-kom' ? 'én række for hvert parti i hver af de 98 kommuner' : ids === 'alle-reg' ? 'én række for hvert parti i hver af de fem regioner' : scope === 'regkom' ? `én række for hvert parti i hver af de ${H.getArea(ids).kommuner.length} kommuner i ${areaIn(ids)}` : 'én række for hvert parti i ' + areaIn(ids);
+          setLede(`Du får én fil med ${fmtN(rows.length)} rækker: ${desc}. Vælg tallene i tre trin herunder.`);
+          const refocus = sel => requestAnimationFrame(() => { const f = answer.querySelector(sel); if (f) f.focus(); });
+          const opt = (k, t, sub, on, pressed) => h('button', { type: 'button', class: 'opt', 'data-opt': k, 'aria-pressed': String(pressed), onclick: () => { on(); refocus(`[data-opt="${k}"]`); } }, h('strong', {}, t), h('small', {}, sub));
+          const firstReg = REG[REG.findIndex(r => r.id === 'region-hovedstaden')] || REG[0];
+          const step1 = h('div', { class: 'opts', role: 'group', 'aria-label': 'Hvilke tal?' },
+            opt('land', 'Hele landet', 'Ét samlet tal pr. parti', () => update('omr', { omr: 'land' }), scope === 'land'),
+            opt('reg', 'De 5 regioner', 'Ét tal pr. parti pr. region', () => update('omr', { omr: 'alle-reg' }), scope === 'reg'),
+            opt('kom', 'Alle 98 kommuner', 'Til statistik på tværs af landet', () => update('omr', { omr: 'alle-kom' }), scope === 'kom'),
+            opt('regkom', 'Kommunerne i en region', 'Fx de 29 i Region Hovedstaden', () => update('omr', { omr: scope === 'regkom' ? ids : firstReg.id }), scope === 'regkom'),
+            opt('en', 'Én kommune', 'Kun tallene for din kommune', () => update('omr', { omr: scope === 'en' ? ids : (loadFoc() || 'horsholm') }), scope === 'en'));
+          let sub1 = null;
+          if (scope === 'regkom' || scope === 'en') {
+            const items = scope === 'regkom' ? REG.map(r => [r.id, `${r.name} (${H.getArea(r.id).kommuner.length} kommuner)`]) : komSorted.map(k => [k.id, k.name]);
+            const sel = h('select', { class: 'dsel', id: 'hsel' }, items.map(([v, t]) => { const o = h('option', { value: v }, t); if (v === ids) o.selected = true; return o; }));
+            sel.addEventListener('change', () => { update('omr', { omr: sel.value }); refocus('#hsel'); });
+            sub1 = h('div', { class: 'subpick' }, h('label', { for: 'hsel' }, scope === 'regkom' ? 'Region' : 'Kommune'), sel);
+          }
+          const step2 = h('div', { class: 'seg2', role: 'group', 'aria-label': 'Hvilket valg?' }, ['kv2025', 'kv2021'].map(v => h('button', { type: 'button', 'data-opt': 'v-' + v, 'aria-pressed': String(ST.valg === v), onclick: () => { update('valg', { valg: v }); refocus(`[data-opt="v-${v}"]`); } }, ELNAME[v])));
+          const step3 = h('div', { class: 'opts two', role: 'group', 'aria-label': 'Hvilket format?' },
+            opt('excel', 'Excel', 'Åbner direkte i dansk Excel (semikolon og decimalkomma)', () => update('fmt', { fmt: 'excel' }), ST.fmt === 'excel'),
+            opt('csv', 'CSV', 'Komma og decimalpunktum – til R, Python eller SPSS', () => update('fmt', { fmt: 'csv' }), ST.fmt === 'csv'));
+          const stepEl = (n, t, ...kids) => h('section', { class: 'hstep' }, h('h3', {}, h('span', { class: 'hn', 'aria-hidden': 'true' }, String(n)), t), ...kids);
+          const btn = h('button', { class: 'dbtn hbtn', type: 'button', disabled: running ? '' : null, onclick: () => {
             const text = ST.fmt === 'excel' ? csv(HEAD, rows) : csv(HEAD, rows, { sep: ',', dec: '.' });
-            download(`valg-${ids}-${ST.valg}.csv`, text); say.textContent = 'Filen er hentet.'; log('hent', ids + ' ' + ST.valg);
-          } }, ST.fmt === 'excel' ? 'Hent Excel-filen' : 'Hent CSV-filen');
-          left.append(h('div', { class: 'hent' }, h('dl', { class: 'facts' },
-            h('div', {}, h('dt', {}, 'Område'), h('dd', {}, ids.startsWith('region-') ? `${H.getArea(ids).kommuner.length} kommuner i ${areaName(ids)}` : areaName(ids))), h('div', {}, h('dt', {}, 'Valg'), h('dd', {}, ELNAME[ST.valg])),
-            h('div', {}, h('dt', {}, 'Rækker'), h('dd', {}, fmtN(rows.length))), h('div', {}, h('dt', {}, 'Kolonner'), h('dd', {}, String(HEAD.length)))), btn,
-            running ? h('p', { class: 'warn-note' }, 'Optællingen kører (simulation). Hent først filen, når den er afsluttet, så den ikke indeholder halve tal.') : h('p', { class: 'mapnote' }, 'Ændring i andel er målt i procentpoint. Eksempeldata, ikke officielle tal.')));
-          const prev = rows.slice(0, 9);
-          right.append(h('div', { class: 'preview' }, h('p', { class: 'pv-h' }, 'Forhåndsvisning (', prev.length + ' af ' + fmtN(rows.length), ' rækker)'),
+            download(`valg-${ids}-${ST.valg}.csv`, text); say.textContent = 'Filen er hentet.'; btn.classList.add('done'); btn.querySelector('.bl').textContent = 'Filen er hentet'; log('hent', ids + ' ' + ST.valg);
+          } }, h('span', { class: 'bl' }, `Hent ${ST.fmt === 'excel' ? 'Excel-filen' : 'CSV-filen'}`), h('span', { class: 'bs' }, `${fmtN(rows.length)} rækker · ${HEAD.length} kolonner`));
+          left.append(h('div', { class: 'hent2' }, stepEl(1, 'Hvilke tal?', step1, sub1), stepEl(2, 'Hvilket valg?', step2), stepEl(3, 'Hvilket format?', step3),
+            h('div', { class: 'hgo' }, btn, running ? h('p', { class: 'warn-note' }, 'Optællingen kører (simulation). Hent først filen, når den er afsluttet, så den ikke indeholder halve tal.') : h('p', { class: 'mapnote' }, 'Eksempeldata, ikke officielle tal.'))));
+          const prev = rows.slice(0, 8);
+          right.append(h('div', { class: 'preview' }, h('p', { class: 'pv-h' }, h('strong', {}, 'Sådan ser filen ud'), ` (de første ${prev.length} af ${fmtN(rows.length)} rækker)`),
             h('div', { class: 'pv-scroll', tabindex: '0', role: 'region', 'aria-label': 'Forhåndsvisning af filen' }, h('table', { class: 'pv' }, h('thead', {}, h('tr', {}, HEAD.map(t => h('th', { scope: 'col' }, t)))),
-              h('tbody', {}, prev.map(r => h('tr', {}, r.map((v, i) => h('td', { class: typeof v === 'number' ? 'num' : '' }, typeof v === 'number' ? (i === 5 || i === 8 ? fmtP(v, 1).replace(' %', '') : fmtN(v)) : String(v))))))))));
+              h('tbody', {}, prev.map(r => h('tr', {}, r.map((v, i) => h('td', { class: typeof v === 'number' ? 'num' : '' }, typeof v === 'number' ? (i === 5 || i === 8 ? fmtP(v, 1).replace(' %', '') : fmtN(v)) : String(v)))))))),
+            h('p', { class: 'pv-n' }, 'Ændring er målt i forhold til forrige kommunalvalg; ændring i andel er i procentpoint.')));
         }
         answer.append(lede, grid, strip(A));
       }
@@ -319,7 +430,8 @@
         }
         if (ST.do === 'se' && !A.pending) {
           const to = sk[ST.omr] ? '#/storkreds/' + ST.omr : ST.valg === 'fv' ? href('/kredse', { valg: 'fv' }) : H.resultHref(ST.omr, ST.valg);
-          acts.append(h('a', { class: 'dbtn small', href: to }, 'Se alle tal'));
+          const nm = ST.omr === 'land' ? 'hele landet' : areaLabel(ST.omr);
+          acts.append(h('a', { class: 'dbtn small', href: to }, h('span', { class: 'lg' }, 'Hele resultatet for ' + nm), h('span', { class: 'sh' }, 'Hele resultatet')));
         }
         return h('div', { class: 'dstrip' }, status, acts);
       }
@@ -397,6 +509,22 @@
     }
 
     /* ============================ HEADER OG NAVIGATION ============================ */
+    /* menuen i D: ordnet efter formål (rapportens F4), samme rækkefølge som hovedmenuen */
+    window.VXD.drawer = () => {
+      const lk = (hr, t, d) => h('a', { href: hr, class: 'dl' }, h('strong', {}, t), d ? h('small', {}, d) : null);
+      const grp = (t, ...links) => h('section', { class: 'dgrp' }, t ? h('h3', {}, t) : null, h('div', { class: 'dlinks' }, links));
+      return [S.closeBtn(), h('h2', { class: 'layer-h' }, 'Menu'),
+        grp(null,
+          lk('#/?do=se', 'Resultater', 'Mandater og stemmer for landet, en region eller din kommune'),
+          lk('#/?do=sammenlign', 'Sammenlign', 'To områder side om side'),
+          lk('#/?do=hente', 'Hent data', 'Valgtal som Excel- eller CSV-fil i tre trin'),
+          lk(href('/kredse', { valg: 'fv' }), 'Kandidater og kredse', 'Hvem stillede op, og hvem blev valgt')),
+        grp('Mere',
+          lk('#/?do=se&hv=valgte', 'Hvem er valgt ind?', 'De valgte med flest personlige stemmer'),
+          lk('#/storskaerm', 'Storskærm', 'Til valgcaféen og projektoren'),
+          lk('#/metode', 'Hvordan fordeles mandaterne?', 'Forklaret uden fagsprog')),
+        grp('Om valg.dk', lk('#/om-valg', 'Om valg.dk'), lk('#/tilgaengelighed', 'Tilgængelighedserklæring'), lk('#/privatliv', 'Privatlivspolitik'), lk('#/sitemap', 'Sitemap'))];
+    };
     const bn = $('.proto-banner'); if (bn) bn.innerHTML = '<span class="lg">Prototype til bachelorprojekt – ikke den officielle Valg.dk. Alle tal er eksempeldata.</span><span class="sh">Prototype – ikke officiel · eksempeldata</span>';
     const hdrIn = $('.site-header .in');
     const navD = h('nav', { class: 'nav-d', 'aria-label': 'Hovedmenu' },
@@ -419,9 +547,16 @@
         if (raw.startsWith('/storskaerm')) document.body.classList.remove('fit');
         S.setKommuneHook(isHome && current ? current.pick : null);
         markNav();
+        document.querySelectorAll('.crumbs a, nav[aria-label="Brødkrumme"] a, .crumb a').forEach(a => { if (a.textContent.trim() === 'Find resultat') a.textContent = 'Resultater'; });
         document.querySelectorAll('.kpis .stat .val').forEach(v => v.classList.toggle('long', v.textContent.trim().length > 12));
       },
     });
-    window.VX.routes = Object.assign({}, window.VX.routes, { storskaerm: (parts, q) => tvPage(q) });
+    /* én funktion ét sted: de ældre sider for find, sammenlign og hent data peger på forsidens tilstande */
+    window.VX.routes = Object.assign({}, window.VX.routes, {
+      storskaerm: (parts, q) => tvPage(q),
+      find: (parts, q) => home(Object.assign({}, q, { do: 'se' })),
+      sammenlign: (parts, q) => home(Object.assign({}, q, { do: 'sammenlign' })),
+      data: (parts, q) => home(Object.assign({}, q, { do: 'hente' })),
+    });
   }
 })();

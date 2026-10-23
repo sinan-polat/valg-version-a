@@ -1,24 +1,19 @@
 # Skrifttyper i version D
 
-Version D (`?v=d`) bruger tre skrifttyper. Alle er under **SIL Open Font License 1.1** (fuld tekst i `OFL-1.1.txt`) og er **selv-hostet** (ingen forbindelse til Google eller andre ved sidevisning).
+Version D (`?v=d`) bruger **Roboto**, den skrifttype det rigtige valg.dk bruger, så prototypen genkendes som valg.dk.
 
-| Fil i `fonts/` | CSS-navn | Original | Ophav / copyright | Brug |
+| Fil i `fonts/` | CSS-navn | Original | Ophav / copyright | Licens |
 |---|---|---|---|---|
-| `inter-400.woff`, `inter-600.woff`, `inter-700.woff` | VD Sans | Inter 4.0 | Copyright 2016 The Inter Project Authors (Rasmus Andersson). https://rsms.me/inter/ | Brødtekst, knapper, tabeller |
-| `interdisplay-800.woff` | VD Display | Inter Display 4.0 ExtraBold | Copyright 2016 The Inter Project Authors | Overskrifter og tal |
-| `lora-var.woff` | VD Serif | Lora 3.008 (variabel) | Copyright 2011 The Lora Project Authors (https://github.com/cyrealtype/Lora-Cyrillic), with Reserved Font Name "Lora" | Sætningen og resuméet |
+| `roboto-400.woff`, `roboto-500.woff`, `roboto-700.woff` | VD Roboto | Roboto 2.137 (Regular, Medium, Bold) | Copyright 2011 Google Inc. All Rights Reserved. (Christian Robertson) | Apache License 2.0 – fuld tekst i `Apache-2.0.txt` |
 
-## Hvad der er ændret
+## Hentet fra og ændret
+- Hentet 23. oktober 2026 fra valg.dk's eget stylesheet (`https://valg.dk/styles.b7277aee8c8914b8.css` peger på `Roboto-Regular/Medium/Bold.*.ttf` på valg.dk). Filernes metadata bekræfter, at det er Googles Roboto 2.137 under Apache License 2.0.
+- Filerne er gjort mindre med `pyftsubset` (fontTools): kun latinske tegn og de tegn, dansk bruger, gemt som WOFF. Copyright- og licensoplysninger i fontfilerne er bevaret.
+- CSS-navnet "VD Roboto" bruges, så version A, B og C ikke ændrer udseende.
 
-- Filerne er **delmænger** (kun latinske tegn og de tegn, dansk bruger) lavet med `pyftsubset` (fontTools) og gemt som WOFF. Det gør dem små (ca. 24–41 kB pr. fil).
-- Fordi Lora har et Reserved Font Name (RFN), er den modificerede delmængde **omdøbt** internt til "VD Serif". Inter har ingen RFN; navnene "VD Sans" og "VD Display" bruges alligevel, så versionerne A, B og C (der bruger `Inter` som første valg i `css/style.css`) ikke ændrer udseende hos besøgende uden Inter installeret.
-- Copyright-linjerne i fontfilernes metadata er bevaret.
-
-## Hentet fra
-
-- Inter: Debian-pakken `fonts-inter` 4.0+ds-1 i udviklingsmiljøet (OTF), hentet/brugt 22. oktober 2026.
-- Lora: filen `Lora-Variable.ttf` i Google Fonts-samlingen i udviklingsmiljøet, brugt 22. oktober 2026.
+## Ikke længere i brug
+`inter-*.woff`, `interdisplay-800.woff`, `lora-var.woff` og `OFL-1.1.txt` blev brugt i en tidligere udgave af version D og indlæses ikke længere. De kan slettes. Hvis de bliver liggende, gælder SIL Open Font License 1.1 (`OFL-1.1.txt`): Inter, Copyright 2016 The Inter Project Authors; Lora, Copyright 2011 The Lora Project Authors (Reserved Font Name "Lora", den medfølgende delmængde er omdøbt).
 
 ## Til kildelogen (bilag 14.6)
-
-Log hver skrifttype (titel, ophavsperson, kilde-URL, licens, dato, hvor den bruges). Kan også nævnes i rapporten under teknisk implementering: "Skrifttyperne Inter og Lora er under SIL Open Font License 1.1 og er selv-hostet."
+- Roboto (Google, Christian Robertson), Apache License 2.0, hentet 23.10.2026 fra valg.dk, brugt som skrifttype i prototypens version D.
+- Farvekoderne i version D er aflæst fra valg.dk's stylesheet samme dag (fx `--color-primary-gray: #3F5061`, `--color-primary-yellow: #ECE5B7`, `--color-tertiary-page-background: #F9F9F8`).

@@ -74,7 +74,13 @@ Siden har `noindex`, så søgemaskiner ikke bør vise den, men et offentligt lin
 | Storskærm | `#/storskaerm` | Til valgcafé/projektor: vælg kommune øverst. Fire billeder skifter automatisk: mandater i landet, kort, kommunens resultat og "Valgt i …" med alle byrådsmedlemmer (pil-taster, mellemrum = pause, Esc lukker). |
 | Øvrige sider | Resultat, kredse, kandidater, data … | Arver D's udseende og deler data og ruter med C. |
 
-**Design:** ark-hvid baggrund, mørk blå (#0F1E3A) tekst og streger, gul markørfarve (#FFE14D) til det, man kan ændre, rød (#B80E28/#C8102E) kun til live og afvigelser. Moderne overflade: lys grå side med svaret i et hvidt kort, bløde hjørner (10–20 px), tynde linjer, segmentvælgere i iOS-stil, valg i sætningen som gule chips og partibogstaver i partiets farve med automatisk kontrast (hvid eller mørk tekst). Skrifttyper: Inter Display (overskrifter og tal), Inter (tekst), Lora (sætningen). Fonte ligger i `fonts/` og indlæses **kun** i version D (se `fonts/LICENSES.md` for licens og ophav).
+**Design (valg.dk-udtryk):** farver og skrifttype er aflæst fra det rigtige valg.dk's stylesheet, så prototypen genkendes: skifergrå #3F5061 (header, knapper), valg-gul #ECE5B7/#DCCE75 (valgfelter), side #F9F9F8, kanter #E4E4E4, grøn #00823E og rød #C33030 til status og demo-gul #FFF4AD til prototype-banneret. Skrifttype: Roboto (se `fonts/LICENSES.md`). Samme komponenter overalt: segmentvælgere, kort med bløde hjørner og partibogstaver i partiets farve.
+
+**Kortet:** bygger på det skematiske kort i `js/geo.js` (uændret, A/B bruger det også) og får i `js/app-d.js` valg.dk-farver og animationer med Web Animations API: boblerne vokser frem i en bølge, kortet glider ind på regionen for den valgte kommune, en ring markerer valget, en infoboks viser største parti og valgdeltagelse ved hover, og under live-optællingen popper nyoptalte kommuner frem. Uoptalte kommuner er hvide som på valg.dk. Animationerne slås fra ved "reduceret bevægelse".
+
+**Hent data:** tre synlige trin (hvilke tal, hvilket valg, hvilket format), forklaring af filen, forhåndsvisning og én knap.
+
+**Én funktion ét sted:** i version D sender de ældre sider `#/find`, `#/sammenlign` og `#/data` videre til forsidens tilstande, overskriften skifter med tilstanden ("Hvordan gik valget?", "Sammenlign to områder", "Hent valgtal som fil"), og menuen er ordnet efter formål i samme rækkefølge som hovedmenuen (rapportens F4).
 
 **Tilgængelighed (egne scripttests, ikke en officiel WCAG-audit):** alle felter har navn, klikbare mål er mindst 32×32 px (scriptet tester det, ud over footerlinks), synlig fokus (også på søgefeltet), reduceret bevægelse respekteres, ingen vandret scroll fra 375 til 1440 px, forsiden kan ikke scrolles på skærme over 900 px (mobil har intern scroll i svaret).
 

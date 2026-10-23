@@ -37,3 +37,21 @@ Hver brugergruppe skal kunne besvare "Hvordan gik valget?" for deres eget behov 
 1. Kør T1–T4 med 3–5 deltagere på mobil i version D (testpanel: `?v=d&test=1`).
 2. Vis afstemningsstedet direkte i svaret, når en kommune er valgt (borgerens job i tabel 3).
 3. En link-knap på svaret, så journalister kan dele præcis den visning (adressen opdateres allerede).
+
+## Runde 2 (23. oktober 2026): valg.dk-udtryk, kort, Hent data og IA
+
+Brugerens feedback: informationsarkitekturen er svær at finde rundt i, kortet og typografien virker gammeldags, og Hent data er forvirrende. Gennemgået med frontend-design-botten side for side (24 sider i version D, 375–1440 px).
+
+| # | Fund | Rettelse |
+|---|---|---|
+| 1 | Samme funktion fandtes to steder (forsidens Se/Sammenlign/Hent og de ældre sider Find/Sammenlign/Hent data) | De ældre sider sender videre til forsidens tilstande |
+| 2 | Man kunne ikke se, hvor man var på forsiden | Overskriften skifter med tilstanden; aktivt menupunkt markeret |
+| 3 | Menuen var ordnet efter brugertype ("Til dig som vælger", "Til dig der vil nørde"), hvilket rapportens F4 fraråder | Menuen er ordnet efter formål og spejler hovedmenuen |
+| 4 | "Se alle tal" sagde ikke, hvor man kom hen | "Hele resultatet for Greve" |
+| 5 | Brødkrummen "Find resultat" og menuen "Resultater" hed forskelligt | Begge hedder "Resultater" |
+| 6 | Hent data: valgene var gemt i sætningen | Tre synlige trin, forklaring og forhåndsvisning |
+| 7 | Serif-skrift og tunge streger føltes gammeldags; udtrykket lignede ikke valg.dk | valg.dk's farver og Roboto; samme segmentvælger overalt |
+| 8 | Kortet var statisk | Animationer, zoom, infoboks og valg.dk-statusfarver under optællingen |
+| 9 | Navnekonflikter (`.box`, `.dl`) ødelagde søgefelt og menu | Rettet |
+
+Alle fire testopgaver og politikerens opgave kører stadig igennem (automatisk test, ikke brugertest).

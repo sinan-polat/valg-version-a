@@ -207,7 +207,7 @@
     const dm = m => window.VVER === 'd' ? '#/?do=' + m : null;
     function openDrawer() {
       const grp = (t, sub, ...links) => h('section', { class: 'dgrp' }, h('h3', {}, t), sub ? h('p', { class: 'dsub2' }, sub) : null, h('div', { class: 'dlinks' }, links));
-      const content = [closeBtn(), h('h2', { class: 'layer-h' }, 'Menu'),
+      const content = (window.VVER === 'd' && window.VXD && window.VXD.drawer) ? window.VXD.drawer() : [closeBtn(), h('h2', { class: 'layer-h' }, 'Menu'),
         grp('Til dig som vælger', 'Hurtigt svar på, hvordan det gik',
           drawerLink(dm('se') || href('/find', { valg: KV }), 'Find resultatet for din kommune', 'Mandater og stemmer, hvor du bor'),
           drawerLink(dm('se&hv=valgte') || href('/valgt', { valg: KV }), 'Hvem er valgt ind?', 'Byrådsmedlemmer og folketingskandidater'),
