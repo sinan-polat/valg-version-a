@@ -70,8 +70,8 @@ kbd{font:600 12px var(--font);border:1.5px solid var(--ink);border-radius:3px;pa
 .ballot{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;flex:1 1 0;min-height:0;overflow:auto;border-top:1.5px solid var(--ink)}
 .ballot .row{flex:1 0 34px;max-height:56px;display:grid;grid-template-columns:34px minmax(0,1fr) 132px 58px;align-items:center;gap:0 12px;border-bottom:1px solid var(--line);padding:2px 4px 2px 2px}
 .ballot .row:hover{background:var(--sheet)}
-.box{width:30px;height:30px;display:grid;place-items:center;border:2px solid var(--ink);border-radius:2px;background:#fff;color:var(--ink);font:800 17px/1 var(--display)}
-.box.sm{width:26px;height:26px;font-size:14px}
+span.box{width:30px;height:30px;display:grid;place-items:center;border:2px solid var(--ink);border-radius:2px;background:#fff;color:var(--ink);font:800 17px/1 var(--display)}
+span.box.sm{width:26px;height:26px;font-size:14px}
 .mid{display:flex;flex-direction:column;gap:3px;min-width:0}
 .pn{font-weight:600;font-size:15px;line-height:1.15;color:var(--ink);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 a.pn:hover{color:var(--red);text-decoration:underline}
@@ -154,7 +154,7 @@ a.pn:hover{color:var(--red);text-decoration:underline}
   .dleft{display:block}
   .ballot{overflow:visible;flex:none}
   .ballot .row{flex:none;height:46px}
-  .box{width:28px;height:28px;font-size:15px}
+  span.box{width:28px;height:28px;font-size:15px}
   .dright{display:block;margin-top:14px}
   .dview{display:block;height:320px}
   .dstrip{position:sticky;bottom:0;background:#fff;padding:8px 0 10px;margin-top:8px;z-index:2}
@@ -279,3 +279,141 @@ body[data-ver="d"] .stat .val{text-align:left;white-space:normal}
 body[data-ver="d"] .kpis .stat .val.long{font-size:clamp(17px,1.7vw,24px);overflow-wrap:break-word;line-height:1.2;letter-spacing:-.01em}
 body[data-ver="d"] .search .box:focus-within{border-color:var(--ink);outline:3px solid var(--ink);outline-offset:2px;box-shadow:0 0 0 6px var(--marker)}
 @media (prefers-reduced-motion:reduce){body[data-ver="d"] *,body[data-ver="d"] *::before,body[data-ver="d"] *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+/* v6: synlig søgning på forsiden (P2: bevar det kendte) */
+.dfind{width:min(400px,100%);margin:0}
+.dfind .box{display:flex;border:2px solid var(--ink);border-radius:3px;background:#fff;min-height:44px}
+.dfind input{flex:1;min-width:0;border:0;background:transparent;font:500 16px/1.2 var(--font);padding:0 12px;color:var(--ink)}
+.dfind input:focus{outline:none}
+.dfind .btn{border:0;border-left:2px solid var(--ink);border-radius:0;background:var(--ink);color:#fff;font:700 15px var(--font);padding:0 16px;min-height:40px;cursor:pointer}
+.dfind .ac-list,.dfind [role="listbox"]{z-index:40}
+@media (max-width:900px){.dtitle{flex-direction:column;align-items:stretch;gap:8px}.dfind{width:100%}.dfind .box{min-height:44px}}
+.dfind .box{padding:0;box-shadow:none}
+.dfind .suggest{top:calc(100% + 4px);border:2px solid var(--ink);border-radius:3px;box-shadow:0 10px 24px rgba(15,30,58,.18);z-index:60;max-height:min(60vh,420px);overflow:auto}
+.dfind .suggest li{padding:10px 14px}
+/* v6: storskærm – kommunevalg og alle valgte */
+.tv-pick{display:flex;align-items:center;gap:8px;font:600 14px var(--font);color:#C9D2E3}
+.tv-sel{font:700 16px var(--font);color:var(--ink);background:var(--marker);border:0;border-radius:3px;padding:8px 10px;min-height:40px}
+.tv-names{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 28px;align-content:start;overflow:auto;flex:1;min-height:0}
+.tv-names li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.16);font:700 clamp(17px,2.4vh,26px)/1.15 var(--font);color:#fff}
+.tv-names .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tv-names small{font:600 clamp(13px,1.7vh,18px) var(--font);color:#C9D2E3;font-variant-numeric:tabular-nums}
+.tv-names.many{grid-template-columns:repeat(4,minmax(0,1fr))}
+.tv-names.many li{font-size:clamp(15px,2vh,20px);padding:4px 0}
+.tv-stage.sc-valgte{display:flex;flex-direction:column;min-height:0}
+@media (max-width:900px){.tv-names,.tv-names.many{grid-template-columns:1fr 1fr;gap:4px 14px}.tv-names li{font-size:15px}}
+@media (max-width:520px){.tv-names,.tv-names.many{grid-template-columns:1fr}}
+.tvpage .tv-names .box.sm{width:clamp(26px,3.6vh,36px);height:clamp(26px,3.6vh,36px);font-size:clamp(14px,2vh,19px)}
+body[data-ver="d"] .search input{width:0;min-width:0}
+body[data-ver="d"] .steps,body[data-ver="d"] .step{min-width:0}
+@media (max-width:520px){.ballot.cmp .row{grid-template-columns:28px minmax(0,1fr) 62px 66px;gap:0 6px}.ballot.cmp .dl{font-size:13px;white-space:nowrap;text-align:right}.ctl{flex-wrap:wrap;gap:8px}}
+@media (max-width:520px){body[data-ver="d"] .ballot.cmp .row{grid-template-columns:26px minmax(0,1fr) 58px 72px}body[data-ver="d"] .ballot.cmp .dl{font-size:12.5px;padding:0;white-space:nowrap}}
+
+/* =========================================================================
+   v7: moderne udtryk (bløde flader, afrundede knapper, chips, segmenter)
+   Alt indhold og al funktion er uændret – kun overfladen.
+   ========================================================================= */
+body[data-ver="d"]{
+  --page:#F4F6FA; --card:#fff; --hair:#E4E8F0; --hair2:#D5DBE7; --chip:#FFF0A6; --chip2:#FFE775; --accent:#2F5BD3;
+  --line:#E4E8F0; --soft:#EEF1F6; --radius:14px; --shadow:0 1px 2px rgba(15,30,58,.06),0 4px 16px rgba(15,30,58,.05);
+  background:var(--page)
+}
+body[data-ver="d"].fit{background:var(--page)}
+body[data-ver="d"] :focus-visible{outline:2px solid transparent;box-shadow:0 0 0 2px #fff,0 0 0 5px var(--accent);border-radius:10px}
+
+/* banner og header */
+body[data-ver="d"] .proto-banner{border-bottom:0;font-weight:600;padding:4px 16px;background:var(--chip)}
+body[data-ver="d"] .hdr-btn{border:0;border-radius:10px;background:rgba(255,255,255,.1);transition:background-color .15s}
+body[data-ver="d"] .hdr-btn:hover{background:rgba(255,255,255,.2)}
+body[data-ver="d"] .hdr-btn.tvlink{border-radius:10px}
+body[data-ver="d"] .logo small{border-radius:6px}
+body[data-ver="d"] .nav-d{gap:4px;align-items:center}
+body[data-ver="d"] .nav-d a{padding:9px 14px;border-bottom:0;border-radius:10px;transition:background-color .15s}
+body[data-ver="d"] .nav-d a:hover{background:rgba(255,255,255,.1)}
+body[data-ver="d"] .nav-d a[aria-current="page"]{background:rgba(255,255,255,.16);box-shadow:inset 0 -2px 0 var(--chip2)}
+
+/* sætningen: bløde chips */
+body[data-ver="d"] .slot{background:var(--chip);border-bottom:0;border-radius:10px;box-shadow:inset 0 0 0 1px rgba(196,160,0,.35);margin:0 .08em;transition:background-color .15s,box-shadow .15s}
+body[data-ver="d"] .slot:hover{background:var(--chip2)}
+body[data-ver="d"] .slot:focus-within{outline:2px solid transparent;box-shadow:0 0 0 2px #fff,0 0 0 5px var(--accent)}
+body[data-ver="d"] .slotsz,body[data-ver="d"] .slotsel{padding:.05em 1.3em .05em .45em}
+body[data-ver="d"] .caret{right:.5em;border-left-width:.27em;border-right-width:.27em;border-top-width:.33em}
+
+/* søgefeltet */
+body[data-ver="d"] .dfind .box{border:1px solid var(--hair2);border-radius:12px;background:#fff;box-shadow:0 1px 2px rgba(15,30,58,.05);overflow:visible;padding:4px}
+body[data-ver="d"] .dfind .btn{border:0;border-radius:9px;min-height:36px;background:var(--ink)}
+body[data-ver="d"] .search .box:focus-within{outline:2px solid transparent;border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,91,211,.22)}
+body[data-ver="d"] .dfind .suggest,body[data-ver="d"] .suggest{border:1px solid var(--hair2);border-radius:12px;box-shadow:0 12px 32px rgba(15,30,58,.14)}
+
+/* svaret som kort */
+body[data-ver="d"] .dans{background:var(--card);border:1px solid var(--hair);border-top:1px solid var(--hair);border-radius:20px;padding:clamp(12px,2vh,22px) clamp(14px,1.8vw,26px) clamp(10px,1.4vh,16px);box-shadow:var(--shadow)}
+body[data-ver="d"] .seg2{border:0;border-radius:12px;background:var(--soft);padding:3px;gap:2px;overflow:visible}
+body[data-ver="d"] .seg2 button{border-radius:9px;background:transparent;color:#46536B;min-height:32px;padding:5px 13px;transition:background-color .15s,color .15s,box-shadow .15s}
+body[data-ver="d"] .seg2 button+button{border-left:0}
+body[data-ver="d"] .seg2 button[aria-pressed="true"]{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(15,30,58,.12),0 1px 6px rgba(15,30,58,.06)}
+body[data-ver="d"] .seg2 button:not([aria-pressed="true"]):hover{background:rgba(255,255,255,.6)}
+
+/* listen */
+body[data-ver="d"] .ballot{border-top:0}
+body[data-ver="d"] .ballot .row{border-bottom:1px solid var(--hair);border-radius:10px;padding:2px 8px 2px 4px}
+body[data-ver="d"] .ballot .row:last-child{border-bottom:0}
+body[data-ver="d"] .ballot .row:hover{background:#F6F8FB}
+body[data-ver="d"] span.box{border:0;border-radius:8px;background:var(--pc,var(--ink));color:var(--pt,#fff);font-size:15px}
+body[data-ver="d"] .bar{height:8px;border-radius:999px;background:#EDF0F5;overflow:hidden}
+body[data-ver="d"] .bar i{border-radius:999px}
+body[data-ver="d"] .cmp .bar{height:6px}
+body[data-ver="d"] .cmp-key .k::before{border-radius:999px}
+body[data-ver="d"] .dl.up{color:#0B7A43}
+
+/* status og knapper */
+body[data-ver="d"] .dstrip{border-top:1px solid var(--hair);padding-top:12px}
+body[data-ver="d"] .tag{border:0;border-radius:999px;padding:6px 11px;background:#E8F3EC;color:#0B6B3A}
+body[data-ver="d"] .tag.final::before{content:"";width:7px;height:7px;border-radius:50%;background:#0B7A43}
+body[data-ver="d"] .tag.live{background:var(--live);color:#fff}
+body[data-ver="d"] .track{border-radius:999px;overflow:hidden;background:#EDF0F5}
+body[data-ver="d"] .dbtn{border:0;border-radius:12px;padding:12px 20px;box-shadow:0 1px 2px rgba(15,30,58,.18);transition:background-color .15s,box-shadow .15s,transform .15s}
+body[data-ver="d"] .dbtn:hover{background:#1C2F57;box-shadow:0 4px 14px rgba(15,30,58,.2)}
+body[data-ver="d"] .dbtn:active{transform:translateY(1px)}
+body[data-ver="d"] .dbtn.small{padding:9px 16px}
+body[data-ver="d"] .dbtn.ghost{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1px var(--hair2)}
+body[data-ver="d"] .dbtn.ghost:hover{background:#F3F5F9;box-shadow:inset 0 0 0 1px #B9C2D3}
+body[data-ver="d"] .empty{border:1px dashed var(--hair2);border-radius:16px;background:#FAFBFD}
+body[data-ver="d"] .facts{border-top:1px solid var(--hair)}
+body[data-ver="d"] .warn-note{border-radius:10px;background:var(--chip)}
+body[data-ver="d"] .pv-scroll{border:1px solid var(--hair);border-radius:14px}
+body[data-ver="d"] .pv th{background:#F3F5F9;color:var(--ink);font-weight:700;border-bottom:1px solid var(--hair)}
+body[data-ver="d"] kbd{border:1px solid var(--hair2);border-radius:6px}
+
+/* øvrige sider (resultat, kredse, kandidater …) */
+body[data-ver="d"] .panel,body[data-ver="d"] .card{border-radius:20px}
+body[data-ver="d"] .btn,body[data-ver="d"] .btn.secondary{border-radius:12px}
+body[data-ver="d"] select.select,body[data-ver="d"] .select{border-radius:12px}
+
+/* storskærm */
+body[data-ver="d"] .tvpage .dbtn.ghost{background:rgba(255,255,255,.08);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.28)}
+body[data-ver="d"] .tvpage .dbtn.ghost:hover{background:rgba(255,255,255,.16)}
+body[data-ver="d"] .tvpage span.box{border:0}
+body[data-ver="d"] .tv-sel{border-radius:10px}
+body[data-ver="d"] .tvpage .bar{background:rgba(255,255,255,.14)}
+@media (prefers-reduced-motion:reduce){body[data-ver="d"] .dbtn:active{transform:none}}
+body[data-ver="d"] .dans{overflow:hidden}
+@media (max-width:900px){body[data-ver="d"] .dans{border-radius:16px;padding:12px 12px 10px;margin-bottom:10px}}
+/* v7: undersider */
+body[data-ver="d"] .btn{border:0;border-radius:12px;box-shadow:0 1px 2px rgba(15,30,58,.18);transition:background-color .15s,box-shadow .15s}
+body[data-ver="d"] .btn:hover{background:#1C2F57;box-shadow:0 4px 14px rgba(15,30,58,.2)}
+body[data-ver="d"] .btn.secondary{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1px var(--hair2)}
+body[data-ver="d"] .btn.secondary:hover{background:#F3F5F9;box-shadow:inset 0 0 0 1px #B9C2D3}
+body[data-ver="d"] .badge{border:0;border-radius:999px;background:#E8ECF4;color:var(--ink);padding:5px 12px}
+body[data-ver="d"] .badge.warn{background:var(--chip)}
+body[data-ver="d"] .panel,body[data-ver="d"] .card,body[data-ver="d"] .mapcard{border:1px solid var(--hair);border-radius:20px;box-shadow:var(--shadow);background:#fff}
+body[data-ver="d"] .seg{border-radius:12px}
+body[data-ver="d"] .seg button[aria-pressed="true"]{border-radius:9px}
+body[data-ver="d"] select,body[data-ver="d"] input[type="search"]{border-radius:12px}
+body[data-ver="d"] .site-footer{background:#0F1E3A}
+body[data-ver="d"] .ballot .row{border-radius:0}
+body[data-ver="d"] .ballot .row:hover{border-radius:8px}
+body[data-ver="d"] .tvpage span.box{font-size:clamp(18px,3.6vh,36px);border-radius:clamp(8px,1.4vh,14px)}
+body[data-ver="d"] .tvpage .tv-names span.box{font-size:clamp(14px,2vh,19px);border-radius:7px}
+body[data-ver="d"] .tvpage .ballot .row{border-bottom-color:rgba(255,255,255,.14)}
+body[data-ver="d"] .tvpage .ballot .row:hover{background:transparent}
+body[data-ver="d"] .tvpage .dl.up{color:#6FDC9C}
+body[data-ver="d"] .tvpage .dl.dn{color:#FF9AA8}

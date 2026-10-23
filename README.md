@@ -66,14 +66,19 @@ Siden har `noindex`, så søgemaskiner ikke bør vise den, men et offentligt lin
 | Sætningen | `#/` | Native udvalgsmenuer (virker med tastatur, skærmlæser og tryk). Genvej: `/` åbner søgning. |
 | Opsummering | Under sætningen | En sætning med det vigtigste ("Socialdemokratiet er største parti …"). På mobil kortes den ned. |
 | Se / Sammenlign / Hent | `#/?do=se`, `do=sammenlign`, `do=hente` | Parametre: `do` (se/sammenlign/hente), `hv` (mand/stem/valgte), `omr`, `omr2`, `valg` (kv2025/kv2021/fv; fv kun ved "se"), `fmt` (excel/csv), `side`, `sort`. |
+| Søgning | Feltet øverst til højre (på mobil under overskriften) | Kommune eller region sætter sætningen; en kandidat åbner kandidatsiden. |
+| Hent fra sammenligning | Knappen "Hent sammenligningen (Excel)" | Én række pr. parti for begge områder. |
+| Hent en region | Hent data → "Region Hovedstaden (29 kommuner)" | Én række pr. parti i hver kommune i regionen (opgave T4). |
 | Min kommune | Gemmes i browserens localStorage (`valg.minKommune`) | Kan vælges ved søgning; ryddes af brugeren. |
 | Live-simulation | Knappen "Se valgaftens optælling (simulation)" | Samme motor som version C; tal er simuleret. |
-| Storskærm | `#/storskaerm` | Til valgcafé/projektor: store tal, skifter automatisk mellem billeder (pil-taster, mellemrum = pause, Esc lukker). |
+| Storskærm | `#/storskaerm` | Til valgcafé/projektor: vælg kommune øverst. Fire billeder skifter automatisk: mandater i landet, kort, kommunens resultat og "Valgt i …" med alle byrådsmedlemmer (pil-taster, mellemrum = pause, Esc lukker). |
 | Øvrige sider | Resultat, kredse, kandidater, data … | Arver D's udseende og deler data og ruter med C. |
 
-**Design:** ark-hvid baggrund, mørk blå (#0F1E3A) tekst og streger, gul markørfarve (#FFE14D) til det, man kan ændre, rød (#B80E28/#C8102E) kun til live og afvigelser. Skarpe hjørner (3 px) og 1,5–3 px streger. Skrifttyper: Inter Display (overskrifter og tal), Inter (tekst), Lora (sætningen). Fonte ligger i `fonts/` og indlæses **kun** i version D (se `fonts/LICENSES.md` for licens og ophav).
+**Design:** ark-hvid baggrund, mørk blå (#0F1E3A) tekst og streger, gul markørfarve (#FFE14D) til det, man kan ændre, rød (#B80E28/#C8102E) kun til live og afvigelser. Moderne overflade: lys grå side med svaret i et hvidt kort, bløde hjørner (10–20 px), tynde linjer, segmentvælgere i iOS-stil, valg i sætningen som gule chips og partibogstaver i partiets farve med automatisk kontrast (hvid eller mørk tekst). Skrifttyper: Inter Display (overskrifter og tal), Inter (tekst), Lora (sætningen). Fonte ligger i `fonts/` og indlæses **kun** i version D (se `fonts/LICENSES.md` for licens og ophav).
 
 **Tilgængelighed (egne scripttests, ikke en officiel WCAG-audit):** alle felter har navn, klikbare mål er mindst 32×32 px (scriptet tester det, ud over footerlinks), synlig fokus (også på søgefeltet), reduceret bevægelse respekteres, ingen vandret scroll fra 375 til 1440 px, forsiden kan ikke scrolles på skærme over 900 px (mobil har intern scroll i svaret).
+
+UX-gennemgangen med bots, friktionstabel og Dommerens vurdering ligger i `docs/ux-gennemgang-version-d.md`.
 
 **Før version D kan nævnes i rapporten:**
 1. Afgrænsningen i rapporten siger, at kandidater, Folketingsvalg og realtid ikke er med. D (og C) har dem, så teksten skal enten rettes eller D beskrives som perspektivering.
