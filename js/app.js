@@ -958,7 +958,8 @@
     const num = v => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
     const med = a => { if (!a.length) return null; const b = a.slice().sort((x, y) => x - y), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
     const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
-    const VN = { a: 'Version A – nuværende struktur', b: 'Version B – opgavebaseret' };
+    const VN = { a: 'Version A', b: 'Version B', c: 'Version C (gammel mærkning)', d: 'Version D (gammel mærkning)' };
+    const VC = { a: COL[0], b: COL[1], c: COL[2], d: '#3F5061' };
     const METRICS = {
       tid: ['Median tid (sek.)', l => med(l.map(r => num(r.sekunder)).filter(x => x != null)), 0],
       klik: ['Gennemsnit klik', l => avg(l.map(r => num(r.klik)).filter(x => x != null)), 1],
@@ -970,33 +971,39 @@
     const body = h('div');
     function draw() {
       const all = stored.concat(extra).map(r => Object.assign({ version: 'b' }, r));
+      const vers = ['a', 'b', 'c', 'd'].filter(v => all.some(r => (r.version || 'b') === v));
       const tasks = [...new Set(all.filter(r => r.opgave && r.opgave !== 'SUS').map(r => r.opgave))].sort();
       const sus = all.filter(r => r.opgave === 'SUS');
       body.innerHTML = '';
       if (!all.length) { body.append(h('p', { class: 'panel', style: 'margin-top:24px' }, 'Ingen testdata endnu. Kør opgaver med testpanelet, eller indlæs en CSV-fil nedenfor.')); return; }
       const cell = (t, v) => { const l = all.filter(r => r.opgave === t && (r.version || 'b') === v); return l; };
       const pcount = v => new Set(all.filter(r => (r.version || 'b') === v).map(r => r.deltager)).size;
-      body.append(h('div', { class: 'areacards' }, ['a', 'b'].map((v, i) => {
+      body.append(h('div', { class: 'areacards' }, vers.map((v, i) => {
         const s = sus.filter(r => (r.version || 'b') === v).map(r => num(r.sus_score)).filter(x => x != null), m = avg(s);
-        return h('div', { class: 'areacard' }, h('i', { style: `background:${COL[i]}`, 'aria-hidden': 'true' }), h('div', {}, h('div', { class: 'n' }, VN[v]), h('div', { class: 'v' }, pcount(v) + ' deltagere'), h('div', { class: 'n' }, m == null ? 'SUS: ingen svar' : 'SUS gennemsnit: ' + fmtP(m, 1).replace(' %', '') + ' (68 = gennemsnitligt)')));
+        return h('div', { class: 'areacard' }, h('i', { style: `background:${VC[v]}`, 'aria-hidden': 'true' }), h('div', {}, h('div', { class: 'n' }, VN[v]), h('div', { class: 'v' }, pcount(v) + ' deltagere'), h('div', { class: 'n' }, m == null ? 'SUS: ingen svar' : 'SUS gennemsnit: ' + fmtP(m, 1).replace(' %', '') + ' (68 = gennemsnitligt)')));
       })));
       body.append(h('div', { class: 'pills', role: 'group', 'aria-label': 'Vælg mål' }, Object.entries(METRICS).map(([id, m]) => h('button', { class: 'pill', type: 'button', 'aria-pressed': String(id === metric), onclick: () => { metric = id; draw(); } }, m[0]))));
       const M = METRICS[metric];
-      const series = ['a', 'b'].map((v, i) => ({ name: VN[v], color: COL[i], values: tasks.map(t => { const x = M[1](cell(t, v)); return x == null ? 0 : +x.toFixed(M[2]); }) }));
+      const series = vers.map((v, i) => ({ name: VN[v], color: VC[v], values: tasks.map(t => { const x = M[1](cell(t, v)); return x == null ? 0 : +x.toFixed(M[2]); }) }));
       body.append(h('div', { class: 'chart', style: 'margin-top:18px' }, h('div', { class: 'chart-legend' }, series.map(se => h('span', {}, h('i', { style: `background:${se.color}` }), se.name))), barChart({ cats: tasks, series, decimals: M[2] })));
       const head = ['Opgave', 'Version', 'N', 'Lykkedes (%)', 'Median tid (sek.)', 'Gns. klik', 'Gns. blindgyder', 'Gns. SEQ'];
       const f1 = x => x == null ? '–' : x.toLocaleString('da-DK', { maximumFractionDigits: 1 });
       const trows = [];
-      tasks.forEach(t => ['a', 'b'].forEach(v => { const l = cell(t, v); if (l.length) trows.push([t, v.toUpperCase(), l.length, METRICS.succes[1](l), METRICS.tid[1](l), METRICS.klik[1](l), METRICS.blind[1](l), METRICS.seq[1](l)]); }));
+      tasks.forEach(t => vers.forEach(v => { const l = cell(t, v); if (l.length) trows.push([t, v.toUpperCase(), l.length, METRICS.succes[1](l), METRICS.tid[1](l), METRICS.klik[1](l), METRICS.blind[1](l), METRICS.seq[1](l)]); }));
       body.append(h('div', { class: 'tbl-wrap', style: 'margin-top:20px' }, h('table', { class: 'tbl' }, h('caption', { class: 'sr-only' }, 'Opsummering pr. opgave og version'),
         h('thead', {}, h('tr', {}, head.map((t, i) => h('th', { scope: 'col', class: i > 1 ? 'num' : '' }, t)))),
         h('tbody', {}, trows.map(r => h('tr', {}, r.map((v, i) => h('td', { class: i > 1 ? 'num' : '' }, i < 3 ? String(v) : f1(v)))))))));
       body.append(h('div', { class: 'toolbar' }, h('span', { class: 'spacer' }), h('button', { class: 'btn secondary small', type: 'button', onclick: () => download('testopsummering.csv', csv(head, trows.map(r => r.map((v, i) => i < 3 ? v : (v == null ? '' : +v.toFixed(2)))), { sep: ';', dec: ',' })) }, '⬇ Hent opsummering (Excel)')));
       body.append(h('p', { class: 'source' }, 'Små stikprøver (3–5 pr. gruppe): brug tallene til at pege på mønstre, ikke som statistisk bevis.'));
+      const ans = all.filter(r => r.opgave && r.opgave !== 'SUS').slice().reverse();
+      body.append(h('h2', { style: 'margin-top:28px' }, 'Alle besvarelser'), h('p', { class: 'source' }, 'Nyeste først. Svar og noter er skrevet af facilitatoren under testen.'),
+        h('div', { class: 'tbl-wrap', style: 'margin-top:10px' }, h('table', { class: 'tbl' }, h('caption', { class: 'sr-only' }, 'Alle besvarelser'),
+          h('thead', {}, h('tr', {}, ['Deltager', 'Version', 'Opgave', 'Udfald', 'Deltagerens svar', 'Tid (sek.)', 'SEQ', 'Noter'].map((t, i) => h('th', { scope: 'col', class: i === 5 || i === 6 ? 'num' : '' }, t)))),
+          h('tbody', {}, ans.map(r => h('tr', {}, [r.deltager, String(r.version || 'b').toUpperCase(), r.opgave, r.udfald, r.svar, r.sekunder, r.seq, r.note].map((v, i) => h('td', { class: i === 5 || i === 6 ? 'num' : '', style: i === 4 || i === 7 ? 'white-space:normal;min-width:180px' : '' }, v == null ? '' : String(v)))))))));
     }
     const file = h('input', { type: 'file', accept: '.csv', id: 'imp', onchange: e => { const f = e.target.files[0]; if (!f) return; f.text().then(t => { extra = extra.concat(parseCsv(t)); draw(); }); } });
     root.append(crumb({ t: 'Forside', href: '#/' }, { t: 'Testresultater' }), h('h1', {}, 'Testresultater'),
-      h('p', { class: 'lead' }, 'Sammenligning af version A (nuværende struktur) og version B (opgavebaseret) – læst fra testpanelets data i denne browser.'),
+      h('p', { class: 'lead' }, 'Resultaterne fra testpanelet i denne browser, fordelt på version. Nederst står alle besvarelser med deltagerens svar og noter.'),
       h('div', { class: 'panel', style: 'margin-top:20px;max-width:760px' }, h('label', { for: 'imp', style: 'font-weight:600;display:block;margin-bottom:8px' }, 'Indlæs flere CSV-filer fra testpanelet (fra andre enheder)'), file), body);
     draw();
     return root;
